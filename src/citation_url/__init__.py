@@ -2,10 +2,14 @@
 
 """Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc."""
 
-from typing import Tuple, Union
+from collections import defaultdict
+from typing import Iterable, List, Mapping, Set, Tuple, Union
 
 __all__ = [
     "parse",
+    "sort_key",
+    "parse_many",
+    "group",
 ]
 
 RAW_DOI_PREFIXES = {
@@ -113,3 +117,26 @@ def parse(url: str) -> Result:
         return "doi", url
 
     return None, url
+
+
+def sort_key(item: Result):
+    """A sort key for results."""
+    if item[0] is None:
+        return 1, "", item[1]
+    return 0, item[0], item[1]
+
+
+def group(urls: Iterable[str]) -> Mapping[str, Set[str]]:
+    """Return a dictionary of the parsed URLs."""
+    rv = defaultdict(set)
+    for url in urls:
+        prefix, identifier = parse(url)
+        rv[prefix].add(identifier)
+    return dict(rv)
+
+
+def parse_many(urls: Iterable[str], pre_sort: bool = False) -> List[Result]:
+    """Parse an iterable of URLs."""
+    if pre_sort:
+        urls = sorted(urls)
+    return [parse(url) for url in urls]
