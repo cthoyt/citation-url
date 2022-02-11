@@ -3,7 +3,7 @@
 """Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc."""
 
 from collections import defaultdict
-from typing import Iterable, List, Mapping, Set, Tuple, Union
+from typing import DefaultDict, Iterable, List, Mapping, Optional, Set, Tuple, Union
 
 __all__ = [
     "parse",
@@ -131,16 +131,16 @@ def parse(url: str) -> Result:
     return None, url
 
 
-def sort_key(item: Result):
-    """A sort key for results."""
+def sort_key(item: Result) -> Tuple[int, str, str]:
+    """Sort results."""
     if item[0] is None:
         return 1, "", item[1]
     return 0, item[0], item[1]
 
 
-def group(urls: Iterable[str]) -> Mapping[str, Set[str]]:
+def group(urls: Iterable[str]) -> Mapping[Optional[str], Set[str]]:
     """Return a dictionary of the parsed URLs."""
-    rv = defaultdict(set)
+    rv: DefaultDict[Optional[str], Set[str]] = defaultdict(set)
     for url in urls:
         prefix, identifier = parse(url)
         rv[prefix].add(identifier)
