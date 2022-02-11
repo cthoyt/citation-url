@@ -5,7 +5,7 @@
 from typing import Tuple, Union
 
 __all__ = [
-    "normalize_citation",
+    "parse",
 ]
 
 RAW_DOI_PREFIXES = {
@@ -38,57 +38,70 @@ PREFIXES = {
 }
 
 
-def normalize_citation(line: str) -> Union[Tuple[str, str], Tuple[None, str]]:
-    """Normalize a citation string that might be a crazy URL from a publisher."""
-    if line.isalnum():
-        return "pubmed", line
+def parse(url: str) -> Union[Tuple[str, str], Tuple[None, str]]:
+    """Normalize a citation string that might be a crazy URL from a publisher.
+
+    :param url: A URL
+    :returns: Either a pair of two strings (e.g., a prefix and identifier) if
+        the URL could be successfully parsed, or a pair of None and the input
+        if it could not be parsed.
+
+    Ideally, this function should be able to parse a huge amount of garbage.
+
+    >>> parse("https://joss.theoj.org/papers/10.21105/joss.01708")
+    ('doi', '10.21105/joss.01708')
+    >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
+    ('pubmed', '34739845')
+    """
+    if url.isalnum():
+        return "pubmed", url
 
     for prefix in RAW_DOI_PREFIXES:
-        if line.startswith(prefix):
+        if url.startswith(prefix):
             for v in range(10):
-                if line.endswith(f".v{v}"):
-                    line = line[: -len(f".v{v}")]
-            return "doi", line
+                if url.endswith(f".v{v}"):
+                    url = url[: -len(f".v{v}")]
+            return "doi", url
 
     for prefix, ns in PREFIXES.items():
-        if line.startswith(prefix):
-            return ns, line[len(prefix) :]
+        if url.startswith(prefix):
+            return ns, url[len(prefix) :]
 
-    if line.startswith("https://www.ncbi.nlm.nih.gov/pmc/articles/"):
-        line = line[len("https://www.ncbi.nlm.nih.gov/pmc/articles/") :]
-        line = line.rstrip("/")
-        return "pmc", line
+    if url.startswith("https://www.ncbi.nlm.nih.gov/pmc/articles/"):
+        url = url[len("https://www.ncbi.nlm.nih.gov/pmc/articles/") :]
+        url = url.rstrip("/")
+        return "pmc", url
 
-    if line.startswith("http://www.biorxiv.org/content/early/"):
-        line = line[len("http://www.biorxiv.org/content/early/") :]
-        parts = line.split("/")  # first 3 are dates, forth should be what we want
+    if url.startswith("http://www.biorxiv.org/content/early/"):
+        url = url[len("http://www.biorxiv.org/content/early/") :]
+        parts = url.split("/")  # first 3 are dates, forth should be what we want
         biorxiv_id = parts[3]
         if "v" in biorxiv_id:
             biorxiv_id = biorxiv_id.split("v")[0]
         return "doi", f"10.1101/{biorxiv_id}"
 
-    if line.startswith("https://www.biorxiv.org/content/"):
-        line = line[len("https://www.biorxiv.org/content/") :].rstrip()
-        if line.endswith(".pdf"):
-            line = line[: -len(".pdf")]
-        if line.endswith(".full"):
-            line = line[: -len(".full")]
+    if url.startswith("https://www.biorxiv.org/content/"):
+        url = url[len("https://www.biorxiv.org/content/") :].rstrip()
+        if url.endswith(".pdf"):
+            url = url[: -len(".pdf")]
+        if url.endswith(".full"):
+            url = url[: -len(".full")]
         for v in range(10):
-            if line.endswith(f"v{v}"):
-                line = line[: -len(f"v{v}")]
-        return "doi", line
+            if url.endswith(f"v{v}"):
+                url = url[: -len(f"v{v}")]
+        return "doi", url
 
-    if line.startswith("https://www.preprints.org/manuscript/"):
-        line = line[len("https://www.preprints.org/manuscript/") :]
+    if url.startswith("https://www.preprints.org/manuscript/"):
+        url = url[len("https://www.preprints.org/manuscript/") :]
         for v in range(10):
-            if line.endswith(f"/v{v}"):
-                line = line[: -len(f"/v{v}")]
-        return "doi", f"10.20944/preprints{line}"
+            if url.endswith(f"/v{v}"):
+                url = url[: -len(f"/v{v}")]
+        return "doi", f"10.20944/preprints{url}"
 
-    if line.startswith("https://www.frontiersin.org/article/"):
-        line = line[len("https://www.frontiersin.org/article/") :]
-        if line.endswith("/full"):
-            line = line[: -len("/full")]
-        return "doi", line
+    if url.startswith("https://www.frontiersin.org/article/"):
+        url = url[len("https://www.frontiersin.org/article/") :]
+        if url.endswith("/full"):
+            url = url[: -len("/full")]
+        return "doi", url
 
-    return None, line
+    return None, url

@@ -34,34 +34,32 @@
 
 Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc.
 
-## 💪 Getting Started
+This module has a single `parse()` function that takes in a URL and gives back
+a CURIE pair (with `None` as the first entry if it could not parse)
 
-> TODO show in a very small amount of space the **MOST** useful thing your package can do.
-Make it as short as possible! You have an entire set of docs for later.
+```python
+>>> import citation_url
+>>> citation_url.parse("https://joss.theoj.org/papers/10.21105/joss.01708")
+('doi', '10.21105/joss.01708')
+>>> citation_url.parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
+('pubmed', '34739845')
+>>> citation_url.parse("https://example.com/true-garbage")
+(None, 'https://example.com/true-garbage')
+```
 
 ## 🚀 Installation
 
-<!-- Uncomment this section after your first ``tox -e finish``
 The most recent release can be installed from
 [PyPI](https://pypi.org/project/citation_url/) with:
 
 ```bash
 $ pip install citation_url
 ```
--->
 
 The most recent code and data can be installed directly from GitHub with:
 
 ```bash
 $ pip install git+https://github.com/cthoyt/citation-url.git
-```
-
-To install in development mode, use the following:
-
-```bash
-$ git clone git+https://github.com/cthoyt/citation-url.git
-$ cd citation-url
-$ pip install -e .
 ```
 
 ## 👐 Contributing
@@ -111,8 +109,17 @@ This package was created with [@audreyfeldroy](https://github.com/audreyfeldroy)
 <details>
   <summary>See developer instrutions</summary>
 
-  
 The final section of the README is for if you want to get involved by making a code contribution.
+
+### Development Installation
+
+To install in development mode, use the following:
+
+```bash
+$ git clone git+https://github.com/cthoyt/citation-url.git
+$ cd citation-url
+$ pip install -e .
+```
 
 ### 🥼 Testing
 
