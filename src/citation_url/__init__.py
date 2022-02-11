@@ -14,6 +14,8 @@ RAW_DOI_PREFIXES = {
     "10.20944/",
 }
 
+BIORXIV_SUFFIXES = [".pdf", ".full", ".article-metrics"]
+
 PREFIXES = {
     "https://doi.org/": "doi",
     "http://biorxiv.org/lookup/doi/": "biorxiv",
@@ -74,6 +76,9 @@ def parse(url: str) -> Union[Tuple[str, str], Tuple[None, str]]:
 
     if url.startswith("http://www.biorxiv.org/content/early/"):
         url = url[len("http://www.biorxiv.org/content/early/") :]
+        for biorxiv_suffix in BIORXIV_SUFFIXES:
+            if url.endswith(biorxiv_suffix):
+                url = url[: -len(biorxiv_suffix)]
         parts = url.split("/")  # first 3 are dates, forth should be what we want
         biorxiv_id = parts[3]
         if "v" in biorxiv_id:
@@ -82,10 +87,9 @@ def parse(url: str) -> Union[Tuple[str, str], Tuple[None, str]]:
 
     if url.startswith("https://www.biorxiv.org/content/"):
         url = url[len("https://www.biorxiv.org/content/") :].rstrip()
-        if url.endswith(".pdf"):
-            url = url[: -len(".pdf")]
-        if url.endswith(".full"):
-            url = url[: -len(".full")]
+        for biorxiv_suffix in BIORXIV_SUFFIXES:
+            if url.endswith(biorxiv_suffix):
+                url = url[: -len(biorxiv_suffix)]
         for v in range(10):
             if url.endswith(f"v{v}"):
                 url = url[: -len(f"v{v}")]
