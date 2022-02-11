@@ -10,7 +10,7 @@ __all__ = [
     "get_version",
 ]
 
-VERSION = "0.0.2"
+VERSION = "0.0.3-dev"
 
 
 def get_version(with_git_hash: bool = False):
