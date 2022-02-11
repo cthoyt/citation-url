@@ -16,17 +16,19 @@
         <img alt="Cookiecutter template from @cthoyt" src="https://img.shields.io/badge/Cookiecutter-python--package-yellow" /> 
     </a>
     <a href="https://pypi.org/project/citation_url">
-        <img alt="PyPI" src="https://img.shields.io/pypi/v/citation_url" />
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/citation-url" />
     </a>
     <a href="https://pypi.org/project/citation_url">
-        <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/citation_url" />
+        <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/citation-url" />
     </a>
     <a href="https://github.com/cthoyt/citation-url/blob/main/LICENSE">
-        <img alt="PyPI - License" src="https://img.shields.io/pypi/l/citation_url" />
+        <img alt="PyPI - License" src="https://img.shields.io/pypi/l/citation-url" />
     </a>
+    <!--
     <a href='https://citation_url.readthedocs.io/en/latest/?badge=latest'>
         <img src='https://readthedocs.org/projects/citation_url/badge/?version=latest' alt='Documentation Status' />
     </a>
+    -->
     <a href='https://github.com/psf/black'>
         <img src='https://img.shields.io/badge/code%20style-black-000000.svg' alt='Code style: black' />
     </a>
