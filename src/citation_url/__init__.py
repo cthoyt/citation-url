@@ -39,8 +39,12 @@ PREFIXES = {
     "https://joss.theoj.org/papers/": "doi",
 }
 
+Identifier = Tuple[str, str]
+Failure = Tuple[None, str]
+Result = Union[Identifier, Failure]
 
-def parse(url: str) -> Union[Tuple[str, str], Tuple[None, str]]:
+
+def parse(url: str) -> Result:
     """Normalize a citation string that might be a crazy URL from a publisher.
 
     :param url: A URL
