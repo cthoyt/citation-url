@@ -38,9 +38,12 @@ PREFIXES = {
     "http://jcm.asm.org/lookup/doi/": "doi",
     "https://www.tandfonline.com/doi/": "doi",
     "https://www.annualreviews.org/doi/": "doi",
-    "http://www.ncbi.nlm.nih.gov/pubmed/": "pubmed",
-    "https://www.ncbi.nlm.nih.gov/pubmed/": "pubmed",
     "https://joss.theoj.org/papers/": "doi",
+}
+
+PUBMED_PREFIXES = {
+    "http://www.ncbi.nlm.nih.gov/pubmed/",
+    "https://www.ncbi.nlm.nih.gov/pubmed/",
 }
 
 Identifier = Tuple[str, str]
@@ -62,6 +65,8 @@ def parse(url: str) -> Result:
     ('doi', '10.21105/joss.01708')
     >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
     ('pubmed', '34739845')
+    >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/29199020,%2029199020")
+    ('pubmed', '29199020')
     """
     if url.isalnum():
         return "pubmed", url
@@ -72,6 +77,13 @@ def parse(url: str) -> Result:
                 if url.endswith(f".v{v}"):
                     url = url[: -len(f".v{v}")]
             return "doi", url
+
+    for prefix in PUBMED_PREFIXES:
+        if url.startswith(prefix):
+            pubmed_id = url[len(prefix) :]
+            if "," in pubmed_id:
+                pubmed_id = pubmed_id.split(",")[0]
+            return "pubmed", pubmed_id
 
     for prefix, ns in PREFIXES.items():
         if url.startswith(prefix):
