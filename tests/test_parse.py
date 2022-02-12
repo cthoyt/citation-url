@@ -54,6 +54,11 @@ class TestParse(unittest.TestCase):
                 "doi",
                 "10.1371/journal.pcbi.1007311",
             ),
+            (
+                "https://elifesciences.org/download/aHR0cHM6Ly9jZG4uZWxpZmV/elife-50036-v1.pdf?_hash=gPY9lWM",
+                "doi",
+                "10.7554/eLife.50036",
+            ),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):

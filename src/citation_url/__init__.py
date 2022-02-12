@@ -189,6 +189,13 @@ def _handle(url: str) -> Union[Status, Tuple[str, str]]:
         query = _get_query(url)
         return "doi", query["id"]
 
+    if url.startswith("elifesciences.org/download/"):
+        url = url[len("elifesciences.org/download/") :]
+        part = url.split("/")[1]
+        part = part.split("?")[0]
+        elife_id = part.split("-")[1]
+        return "doi", f"10.7554/eLife.{elife_id}"
+
     return Status.unknown
 
 
