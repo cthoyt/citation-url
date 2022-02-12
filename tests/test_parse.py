@@ -1,9 +1,10 @@
 """Tests for parsing."""
 
 import unittest
+from typing import Iterable
 
 import citation_url
-from citation_url import PREFIXES, PROTOCOLS, Result, Status
+from citation_url import IRRECONCILABLE, PREFIXES, PROTOCOLS, Result, Status
 
 
 class TestParse(unittest.TestCase):
@@ -17,7 +18,15 @@ class TestParse(unittest.TestCase):
 
     def test_prefixes(self):
         """Test no prefixes include protocols."""
-        for prefix in PREFIXES:
+        self.help_prefixes(PREFIXES)
+
+    def test_irrec(self):
+        """Test no irreconcilable prefixes include protocols."""
+        self.help_prefixes(IRRECONCILABLE)
+
+    def help_prefixes(self, prefixes: Iterable[str]):
+        """Help test the prefixes don't include protocols."""
+        for prefix in prefixes:
             with self.subTest(prefix=prefix):
                 self.assertFalse(any(prefix.startswith(protocol) for protocol in PROTOCOLS))
 
