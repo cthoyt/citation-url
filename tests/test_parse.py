@@ -30,6 +30,13 @@ class TestParse(unittest.TestCase):
             with self.subTest(prefix=prefix):
                 self.assertFalse(any(prefix.startswith(protocol) for protocol in PROTOCOLS))
 
+    def test_result_repr(self):
+        """Test thee repr of a result."""
+        self.assertEqual(
+            "Result(status=Status.success, prefix='pubmed', identifier='34739845')",
+            repr(Result(status=Status.success, prefix="pubmed", identifier="34739845")),
+        )
+
     def test_parse(self):
         """Test parsing."""
         data = [

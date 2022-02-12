@@ -37,19 +37,27 @@
 Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc.
 
 This module has a single `parse()` function that takes in a URL and gives back
-a CURIE pair (with `None` as the first entry if it could not parse)
+a parse status (success, unknown, or irreconcilable), a prefix, and
+an identifier. If the status is unknown or irreconcilable, the prefix will
+be left as `None` and the identifier will match the input:
 
 ```python
->>> import citation_url
+>>> from citation_url import parse, Status
 
->>> citation_url.parse("https://joss.theoj.org/papers/10.21105/joss.01708")
-('doi', '10.21105/joss.01708')
+>>> parse("https://joss.theoj.org/papers/10.21105/joss.01708")
+(Status.success, 'doi', '10.21105/joss.01708')
 
->>> citation_url.parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
-('pubmed', '34739845')
+>>> parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
+(Status.success, 'pubmed', '34739845')
 
->>> citation_url.parse("https://example.com/true-garbage")
-(None, 'https://example.com/true-garbage')
+>>> parse("https://example.com/true-garbage")
+(Status.unknown, None, 'https://example.com/true-garbage')
+
+>>> parse("https://example.com/true-garbage")
+(Status.unknown, None, 'https://example.com/true-garbage')
+
+>>> parse("http://msb.embopress.org/content/13/11/954.full.pdf")
+(Status.irreconcilable, None, 'http://msb.embopress.org/content/13/11/954.full.pdf')
 ```
 
 ## 🕵️ Why?

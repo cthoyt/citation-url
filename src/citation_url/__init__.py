@@ -24,6 +24,8 @@ __all__ = [
     "sort_key",
     "parse_many",
     "group",
+    "Status",
+    "Result",
 ]
 
 RAW_DOI_PREFIXES = {"10.21203/", "10.26434/", "10.20944/", "10.21105/"}
@@ -77,6 +79,9 @@ class Status(enum.Enum):
     success = "success"
     unknown = "unknown"
     irreconcilable = "irreconcilable"
+
+    def __repr__(self) -> str:  # noqa:D105
+        return f"{self.__class__.__name__}.{self.value}"
 
 
 class Result(NamedTuple):
