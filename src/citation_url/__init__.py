@@ -133,6 +133,9 @@ def _handle(url: str) -> Union[Status, Tuple[str, str]]:
         if url.endswith(suffix):
             url = url[: -len(suffix)]
 
+    if url.startswith("www.jbc.org/content/") and all(x.isnumeric() for x in url.split("/")[2:]):
+        return Status.irreconcilable
+
     if url.startswith("www.ncbi.nlm.nih.gov/pubmed/"):
         pubmed_id = url[len("www.ncbi.nlm.nih.gov/pubmed/") :]
         if "," in pubmed_id:

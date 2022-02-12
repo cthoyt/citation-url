@@ -78,6 +78,7 @@ class TestParse(unittest.TestCase):
             "https://www.pnas.org/content/pnas/117/28/16500.full.pdf",
             "https://www.cell.com/article/S245194561930073X/pdf",
             "https://pdfs.semanticscholar.org/91fb/9d1827da26fe87ff232e310ab5b819bbb99f.pdf",
+            "http://www.jbc.org/content/294/21/8664.full.pdf",
         ]
         for url in data:
             with self.subTest(url=url):
