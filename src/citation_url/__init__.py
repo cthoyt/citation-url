@@ -3,7 +3,7 @@
 """Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc."""
 
 from collections import defaultdict
-from typing import DefaultDict, Iterable, List, Mapping, Optional, Set, Tuple, Union
+from typing import DefaultDict, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 __all__ = [
     "parse",
@@ -12,39 +12,33 @@ __all__ = [
     "group",
 ]
 
-RAW_DOI_PREFIXES = {
-    "10.21203/",
-    "10.26434/",
-    "10.20944/",
-}
+RAW_DOI_PREFIXES = {"10.21203/", "10.26434/", "10.20944/", "10.21105/"}
 
-BIORXIV_SUFFIXES = [".pdf", ".full", ".article-metrics"]
+BIORXIV_SUFFIXES = [".pdf", ".full", ".full.pdf", ".article-metrics"]
 
 PREFIXES = {
-    "https://doi.org/": "doi",
-    "http://biorxiv.org/lookup/doi/": "biorxiv",
-    "http://medrxiv.org/lookup/doi/": "medrxiv",
-    "http://jvi.asm.org/cgi/doi/": "doi",
-    "https://www.sciencemag.org/lookup/doi/": "doi",
-    "http://doi.wiley.com/": "doi",
-    "https://onlinelibrary.wiley.com/doi/full/": "doi",
-    "http://bmcsystbiol.biomedcentral.com/articles/": "doi",
-    "https://dx.plos.org/": "doi",
-    "http://www.nejm.org/doi/": "doi",
-    "https://onlinelibrary.wiley.com/doi/abs/": "doi",
-    "http://www.pnas.org/cgi/doi/": "doi",
-    "https://www.microbiologyresearch.org/content/journal/jgv/": "doi",
-    "http://link.springer.com/": "doi",
-    "http://jcm.asm.org/lookup/doi/": "doi",
-    "https://www.tandfonline.com/doi/": "doi",
-    "https://www.annualreviews.org/doi/": "doi",
-    "https://joss.theoj.org/papers/": "doi",
+    "doi.org/": "doi",
+    "biorxiv.org/lookup/doi/": "biorxiv",
+    "medrxiv.org/lookup/doi/": "medrxiv",
+    "jvi.asm.org/cgi/doi/": "doi",
+    "www.sciencemag.org/lookup/doi/": "doi",
+    "doi.wiley.com/": "doi",
+    "onlinelibrary.wiley.com/doi/full/": "doi",
+    "bmcsystbiol.biomedcentral.com/articles/": "doi",
+    "dx.plos.org/": "doi",
+    "www.nejm.org/doi/": "doi",
+    "onlinelibrary.wiley.com/doi/abs/": "doi",
+    "www.pnas.org/cgi/doi/": "doi",
+    "www.microbiologyresearch.org/content/journal/jgv/": "doi",
+    "link.springer.com/": "doi",
+    "jcm.asm.org/lookup/doi/": "doi",
+    "www.tandfonline.com/doi/": "doi",
+    "www.annualreviews.org/doi/": "doi",
+    "joss.theoj.org/papers/": "doi",
+    "bmcbioinformatics.biomedcentral.com/track/pdf/": "doi",
 }
 
-PUBMED_PREFIXES = {
-    "http://www.ncbi.nlm.nih.gov/pubmed/",
-    "https://www.ncbi.nlm.nih.gov/pubmed/",
-}
+PROTOCOLS = {"https://", "http://"}
 
 Identifier = Tuple[str, str]
 Failure = Tuple[None, str]
@@ -71,42 +65,58 @@ def parse(url: str) -> Result:
     if url.isalnum():
         return "pubmed", url
 
-    for prefix in RAW_DOI_PREFIXES:
-        if url.startswith(prefix):
-            for v in range(10):
-                if url.endswith(f".v{v}"):
-                    url = url[: -len(f".v{v}")]
+    for protocol in PROTOCOLS:
+        if url.startswith(protocol):
+            return _handle(url[len(protocol):])
+
+    for doi_prefix in RAW_DOI_PREFIXES:
+        if url.endswith(".pdf"):
+            url = url[: -len(".pdf")]
+        if url.startswith(doi_prefix):
+            for version in range(10):
+                if url.endswith(f".v{version}"):
+                    url = url[: -len(f".v{version}")]
             return "doi", url
 
-    for prefix in PUBMED_PREFIXES:
-        if url.startswith(prefix):
-            pubmed_id = url[len(prefix) :]
-            if "," in pubmed_id:
-                pubmed_id = pubmed_id.split(",")[0]
-            return "pubmed", pubmed_id
+    return None, url
+
+
+def _handle(url: str) -> Result:
+    if url.endswith(".pdf"):
+        url = url[: -len(".pdf")]
+
+    if url.startswith("www.ncbi.nlm.nih.gov/pubmed/"):
+        pubmed_id = url[len("www.ncbi.nlm.nih.gov/pubmed/") :]
+        if "," in pubmed_id:
+            pubmed_id = pubmed_id.split(",")[0]
+        return "pubmed", pubmed_id
 
     for prefix, ns in PREFIXES.items():
         if url.startswith(prefix):
             return ns, url[len(prefix) :]
 
-    if url.startswith("https://www.ncbi.nlm.nih.gov/pmc/articles/"):
-        url = url[len("https://www.ncbi.nlm.nih.gov/pmc/articles/") :]
-        url = url.rstrip("/")
+    if url.startswith("www.ncbi.nlm.nih.gov/pmc/articles/"):
+        url = url[len("www.ncbi.nlm.nih.gov/pmc/articles/") :]
+        url = url.split("/")[0]
         return "pmc", url
 
-    if url.startswith("http://www.biorxiv.org/content/early/"):
-        url = url[len("http://www.biorxiv.org/content/early/") :]
-        for biorxiv_suffix in BIORXIV_SUFFIXES:
-            if url.endswith(biorxiv_suffix):
-                url = url[: -len(biorxiv_suffix)]
-        parts = url.split("/")  # first 3 are dates, forth should be what we want
-        biorxiv_id = parts[3]
-        if "v" in biorxiv_id:
-            biorxiv_id = biorxiv_id.split("v")[0]
-        return "doi", f"10.1101/{biorxiv_id}"
+    for prefix in (
+        "www.biorxiv.org/content/early/",
+        "www.biorxiv.org/content/biorxiv/early/",
+    ):
+        if url.startswith(prefix):
+            url = url[len(prefix) :]
+            for biorxiv_suffix in BIORXIV_SUFFIXES:
+                if url.endswith(biorxiv_suffix):
+                    url = url[: -len(biorxiv_suffix)]
+            parts = url.split("/")  # first 3 are dates, forth should be what we want
+            biorxiv_id = parts[3]
+            if "v" in biorxiv_id:
+                biorxiv_id = biorxiv_id.split("v")[0]
+            return "doi", f"10.1101/{biorxiv_id}"
 
-    if url.startswith("https://www.biorxiv.org/content/"):
-        url = url[len("https://www.biorxiv.org/content/") :].rstrip()
+    if url.startswith("www.biorxiv.org/content/"):
+        url = url[len("www.biorxiv.org/content/") :].rstrip()
         for biorxiv_suffix in BIORXIV_SUFFIXES:
             if url.endswith(biorxiv_suffix):
                 url = url[: -len(biorxiv_suffix)]
@@ -115,18 +125,24 @@ def parse(url: str) -> Result:
                 url = url[: -len(f"v{v}")]
         return "doi", url
 
-    if url.startswith("https://www.preprints.org/manuscript/"):
-        url = url[len("https://www.preprints.org/manuscript/") :]
+    if url.startswith("www.preprints.org/manuscript/"):
+        url = url[len("www.preprints.org/manuscript/") :]
         for v in range(10):
             if url.endswith(f"/v{v}"):
                 url = url[: -len(f"/v{v}")]
         return "doi", f"10.20944/preprints{url}"
 
-    if url.startswith("https://www.frontiersin.org/article/"):
-        url = url[len("https://www.frontiersin.org/article/") :]
+    if url.startswith("www.frontiersin.org/article/"):
+        url = url[len("www.frontiersin.org/article/") :]
         if url.endswith("/full"):
             url = url[: -len("/full")]
         return "doi", url
+
+    if url.startswith("www.nature.com/articles/"):
+        url = url[len("www.nature.com/articles/") :]
+        if url.endswith(".pdf"):
+            url = url[: -len(".pdf")]
+        return "doi", f"10.1038/{url}"
 
     return None, url
 
