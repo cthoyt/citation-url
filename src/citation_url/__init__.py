@@ -163,6 +163,15 @@ def _handle(url: str) -> Union[Status, Tuple[str, str]]:
                 biorxiv_id = biorxiv_id.split("v")[0]
             return "doi", f"10.1101/{biorxiv_id}"
 
+    if url.startswith("europepmc.org/article/PMC/"):
+        pmc_id = url[len("europepmc.org/article/PMC/") :]
+        return "pmc", f"PMC{pmc_id}"
+
+    if url.lower().startswith("europepmc.org/articles/pmc"):
+        url = url[len("europepmc.org/articles/pmc") :]
+        pmc_id = url.split("?")[0]
+        return "pmc", f"PMC{pmc_id}"
+
     if url.startswith("www.jbc.org/content/early/"):
         url = url[len("www.jbc.org/content/early/") :]
         parts = url.split("/")  # first 3 are dates, forth should be what we want

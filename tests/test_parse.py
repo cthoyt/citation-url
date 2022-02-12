@@ -64,6 +64,9 @@ class TestParse(unittest.TestCase):
                 "doi",
                 "10.1074/jbc.RA118.006805",
             ),
+            ("https://europepmc.org/articles/pmc4944528?pdf=render", "pmc", "PMC4944528"),
+            ("https://europepmc.org/articles/PMC4944528?pdf=render", "pmc", "PMC4944528"),
+            ("https://europepmc.org/article/PMC/4944528", "pmc", "PMC4944528"),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):
