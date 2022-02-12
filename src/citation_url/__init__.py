@@ -56,6 +56,7 @@ IRRECONCILABLE = [
     "www.pnas.org/content/pnas/",
     "www.cell.com/article/",
     "pdfs.semanticscholar.org",
+    "www.cell.com/cell-systems/fulltext/",
 ]
 
 PROTOCOLS = {"https://", "http://"}
