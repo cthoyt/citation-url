@@ -59,6 +59,8 @@ IRRECONCILABLE = [
     "pdfs.semanticscholar.org",
     "www.cell.com/cell-systems/fulltext/",
     "www.cell.com/cell/pdf/",
+    "msb.embopress.org/content/",
+    "msb.embopress.org/content/msb/",
 ]
 
 PROTOCOLS = {"https://", "http://"}

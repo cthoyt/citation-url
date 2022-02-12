@@ -103,6 +103,8 @@ class TestParse(unittest.TestCase):
             "http://www.jbc.org/content/294/21/8664.full.pdf",
             "https://www.cell.com/cell-systems/fulltext/S2405-4712(17)30490-8",
             "https://www.cell.com/cell/pdf/S0092-8674(20)30346-9.pdf",
+            "http://msb.embopress.org/content/13/11/954.full.pdf",
+            "https://msb.embopress.org/content/msb/11/3/797.full.pdf",
         ]
         for url in data:
             with self.subTest(url=url):
