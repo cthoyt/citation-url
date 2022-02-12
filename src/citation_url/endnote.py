@@ -1,4 +1,4 @@
-"""Interface to zotero."""
+"""Interface to EndNote."""
 
 import time
 from pathlib import Path
@@ -10,10 +10,10 @@ from defusedxml import ElementTree
 from citation_url import Status, group
 
 
-def process_zotero_xml(
+def process_endnote_xml(
     path: Union[str, Path], keep_none: bool = False
 ) -> Dict[Union[str, Status], Set[str]]:
-    """Extract all URLs from a Zotero XML file."""
+    """Extract all URLs from an EndNote XML file."""
     tree = ElementTree.parse(path)
     groups = group(
         (
@@ -32,12 +32,9 @@ def process_zotero_xml(
     return groups
 
 
-def zotero_to_wikidata(path: Union[str, Path]):
-    """Ensure the contents of the Zotero XML file are added to Wikidata.
-
-    :param path: Path to a Zotero XML file
-    """
-    groups = process_zotero_xml(path=path, keep_none=False)
+def endnote_to_wikidata(path: Union[str, Path]):
+    """Ensure the contents of the EndNote XML file are added to Wikidata."""
+    groups = process_endnote_xml(path=path, keep_none=False)
     _upload_wikidata(
         id_type="pmcid",
         source="europepmc",
@@ -83,8 +80,8 @@ def _upload_wikidata(id_type: str, source: str, identifiers: Iterable[str]):
 @click.command()
 @click.argument("path", type=click.Path(path_type=Path))
 def main(path: Path):
-    """Ensure the papers in a Zotero XML are added to Wikidata."""
-    zotero_to_wikidata(path)
+    """Ensure the papers in a EndNote XML are added to Wikidata."""
+    endnote_to_wikidata(path)
 
 
 if __name__ == "__main__":

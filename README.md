@@ -63,16 +63,17 @@ be left as `None` and the identifier will match the input:
 ## 🕵️ Why?
 
 I wanted to be able to curate a list of papers in
-[Zotero](https://www.zotero.org), make an XML export, extract and normalize
-the messy contents in the `text-url` and `pdf-url` fields, then ensure
-that there are appropriate entries on [Wikidata](https://www.wikidata.org)
-by using the Su Lab's
+[Zotero](https://www.zotero.org), [Mendeley](https://www.mendeley.com/), or any
+other modern citation manager, make an XML export in the EndNote format, extract
+and normalize the messy contents in the `electronic-resource-num`, `text-urls`,
+and `pdf-urls` fields, then ensure that there are corresponding entries
+on [Wikidata](https://www.wikidata.org) using the Su Lab's
 [Wikidata Integrator](https://github.com/SuLab/WikidataIntegrator).
 
 Reuse this functionality with:
 
 ```shell
-$ python -m citation_url.zotero --help
+$ python -m citation_url.endnote --help
 ```
 
 ## 🚀 Installation
