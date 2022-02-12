@@ -52,6 +52,15 @@ a CURIE pair (with `None` as the first entry if it could not parse)
 (None, 'https://example.com/true-garbage')
 ```
 
+## 🕵️ Why?
+
+I wanted to be able to curate a list of papers in
+[Zotero](https://www.zotero.org), make an XML export, extract and normalize
+the messy contents in the `text-url` and `pdf-url` fields, then ensure
+that there are appropriate entries on [Wikidata](https://www.wikidata.org)
+by using the Su Lab's
+[Wikidata Integrator](https://github.com/SuLab/WikidataIntegrator).
+
 ## 🚀 Installation
 
 The most recent release can be installed from
