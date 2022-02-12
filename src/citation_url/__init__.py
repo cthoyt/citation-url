@@ -102,7 +102,7 @@ def parse(url: str) -> Result:
     >>> parse("http://www.biorxiv.org/content/biorxiv/early/2017/08/09/174094.full.pdf")
     ('doi', '10.1101/174094')
     """
-    if url.isalnum():
+    if url.isnumeric():
         return Result(Status.success, "pubmed", url)
 
     for protocol in PROTOCOLS:
@@ -169,7 +169,7 @@ def _handle(url: str) -> Union[Status, Tuple[str, str]]:
         return "doi", f"10.1074/{parts[3]}"
 
     if url.startswith("www.biorxiv.org/content/"):
-        url = url[len("www.biorxiv.org/content/") :].rstrip()
+        url = url[len("www.biorxiv.org/content/") :]
         for v in range(10):
             if url.endswith(f"v{v}"):
                 url = url[: -len(f"v{v}")]
