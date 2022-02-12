@@ -44,6 +44,16 @@ class TestParse(unittest.TestCase):
                 "doi",
                 "10.21105/joss.01708",
             ),
+            (
+                "https://journals.plos.org/ploscompbiol/article/file?id=10.1371/journal.pcbi.1007311&type=printable",
+                "doi",
+                "10.1371/journal.pcbi.1007311",
+            ),
+            (
+                "https://journals.plos.org/ploscompbiol/article/file?type=printable&id=10.1371/journal.pcbi.1007311",
+                "doi",
+                "10.1371/journal.pcbi.1007311",
+            ),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):

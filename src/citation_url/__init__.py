@@ -3,7 +3,8 @@
 """Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc."""
 
 from collections import defaultdict
-from typing import DefaultDict, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import DefaultDict, Dict, Iterable, List, Mapping, Optional, Set, Tuple, Union
+from urllib.parse import urlparse
 
 __all__ = [
     "parse",
@@ -147,7 +148,19 @@ def _handle(url: str) -> Result:
             url = url[: -len(".pdf")]
         return "doi", f"10.1038/{url}"
 
+    if url.startswith("journals.plos.org/ploscompbiol/article/file"):
+        query = _get_query(url)
+        return "doi", query["id"]
+
     return None, url
+
+
+def _get_query(url: str) -> Mapping[str, str]:
+    query = {}
+    for part in urlparse(url).query.split("&"):
+        key, value = part.split("=")
+        query[key] = value
+    return query
 
 
 def sort_key(item: Result) -> Tuple[int, str, str]:
