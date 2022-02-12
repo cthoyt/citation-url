@@ -41,10 +41,16 @@ def zotero_to_wikidata(path: Union[str, Path]):
     _upload_wikidata(
         id_type="pmcid",
         source="europepmc",
-        identifiers=[x.removeprefix("PMC") for x in groups.get("pmc", [])],
+        identifiers=[_removeprefix(x, "PMC") for x in groups.get("pmc", [])],
     )
     _upload_wikidata(id_type="doi", source="crossref", identifiers=groups.get("doi", []))
     _upload_wikidata(id_type="pmid", source="europepmc", identifiers=groups.get("pubmed", []))
+
+
+def _removeprefix(s: str, prefix: str) -> str:
+    if s.startswith(prefix):
+        return s[len(prefix) :]
+    return s
 
 
 def _upload_wikidata(id_type: str, source: str, identifiers: Iterable[str]):
