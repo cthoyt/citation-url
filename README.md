@@ -41,10 +41,13 @@ a CURIE pair (with `None` as the first entry if it could not parse)
 
 ```python
 >>> import citation_url
+
 >>> citation_url.parse("https://joss.theoj.org/papers/10.21105/joss.01708")
 ('doi', '10.21105/joss.01708')
+
 >>> citation_url.parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
 ('pubmed', '34739845')
+
 >>> citation_url.parse("https://example.com/true-garbage")
 (None, 'https://example.com/true-garbage')
 ```
