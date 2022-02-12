@@ -67,6 +67,11 @@ class TestParse(unittest.TestCase):
             ("https://europepmc.org/articles/pmc4944528?pdf=render", "pmc", "PMC4944528"),
             ("https://europepmc.org/articles/PMC4944528?pdf=render", "pmc", "PMC4944528"),
             ("https://europepmc.org/article/PMC/4944528", "pmc", "PMC4944528"),
+            (
+                "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&amp;id=27357669&amp;retmode=ref&amp;cmd=prlinks",
+                "pubmed",
+                "27357669",
+            ),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):

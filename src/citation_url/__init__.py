@@ -215,12 +215,17 @@ def _handle(url: str) -> Union[Status, Tuple[str, str]]:
         elife_id = part.split("-")[1]
         return "doi", f"10.7554/eLife.{elife_id}"
 
+    if url.startswith("eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi"):
+        query = _get_query(url)
+        if query.get("dbfrom") == "pubmed":
+            return "pubmed", query["id"]
+
     return Status.unknown
 
 
 def _get_query(url: str) -> Mapping[str, str]:
     query = {}
-    for part in urlparse(url).query.split("&"):
+    for part in urlparse(url.replace("&amp;", "&")).query.split("&"):
         key, value = part.split("=")
         query[key] = value
     return query
