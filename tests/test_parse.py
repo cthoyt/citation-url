@@ -59,6 +59,11 @@ class TestParse(unittest.TestCase):
                 "doi",
                 "10.7554/eLife.50036",
             ),
+            (
+                "http://www.jbc.org/content/early/2019/03/11/jbc.RA118.006805.full.pdf",
+                "doi",
+                "10.1074/jbc.RA118.006805",
+            ),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):
