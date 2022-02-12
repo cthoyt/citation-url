@@ -3,7 +3,7 @@
 import unittest
 
 import citation_url
-from citation_url import PREFIXES, PROTOCOLS
+from citation_url import PREFIXES, PROTOCOLS, Result, Status
 
 
 class TestParse(unittest.TestCase):
@@ -57,4 +57,17 @@ class TestParse(unittest.TestCase):
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):
-                self.assertEqual((prefix, identifier), citation_url.parse(url))
+                self.assertEqual(
+                    Result(Status.success, prefix, identifier), citation_url.parse(url)
+                )
+
+    def test_unable_to_parse(self):
+        """Test URLs that don't have enough information to get a standard identifier."""
+        data = [
+            "https://www.pnas.org/content/pnas/early/2020/06/24/2000648117.full.pdf",
+            "https://www.pnas.org/content/pnas/117/28/16500.full.pdf",
+            "https://www.cell.com/article/S245194561930073X/pdf",
+        ]
+        for url in data:
+            with self.subTest(url=url):
+                self.assertEqual(Result(Status.irreconcilable, None, url), citation_url.parse(url))

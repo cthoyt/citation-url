@@ -2,17 +2,17 @@
 
 import time
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Set, Union
+from typing import Dict, Iterable, Set, Union
 
 import click
 from defusedxml import ElementTree
 
-from citation_url import group
+from citation_url import Status, group
 
 
 def process_zotero_xml(
     path: Union[str, Path], keep_none: bool = False
-) -> Dict[Optional[str], Set[str]]:
+) -> Dict[Union[str, Status], Set[str]]:
     """Extract all URLs from a Zotero XML file."""
     tree = ElementTree.parse(path)
     groups = group(
@@ -62,7 +62,8 @@ def _upload_wikidata(id_type: str, source: str, identifiers: Iterable[str]):
         try:
             publication_helper = PublicationHelper(identifier, id_type=id_type, source=source)
             qid, warnings, success = publication_helper.get_or_create(wikidata_login)
-            tqdm.write(f"{id_type}:{identifier}\twikidata:{qid}\tsuccess={success}")
+            success = "success" if success is True else success
+            tqdm.write(f"{id_type}:{identifier}\twikidata:{qid}\tmessage: {success}")
             for warning in warnings or []:
                 tqdm.write(f"    warning: {warning}")
             time.sleep(3)

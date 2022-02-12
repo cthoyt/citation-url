@@ -2,8 +2,21 @@
 
 """Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc."""
 
+import enum
 from collections import defaultdict
-from typing import DefaultDict, Dict, Iterable, List, Mapping, Optional, Set, Tuple, Union
+from typing import (
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    cast,
+)
 from urllib.parse import urlparse
 
 __all__ = [
@@ -38,12 +51,29 @@ PREFIXES = {
     "joss.theoj.org/papers/": "doi",
     "bmcbioinformatics.biomedcentral.com/track/pdf/": "doi",
 }
+IRRECONCILABLE = [
+    "www.pnas.org/content/pnas/early/",
+    "www.pnas.org/content/pnas/",
+    "www.cell.com/article/",
+]
 
 PROTOCOLS = {"https://", "http://"}
 
-Identifier = Tuple[str, str]
-Failure = Tuple[None, str]
-Result = Union[Identifier, Failure]
+
+class Status(enum.Enum):
+    """A result type enumeration."""
+
+    success = "success"
+    unknown = "unknown"
+    irreconcilable = "irreconcilable"
+
+
+class Result(NamedTuple):
+    """A result tuple."""
+
+    status: Status
+    prefix: Optional[str]
+    identifier: str
 
 
 def parse(url: str) -> Result:
@@ -72,11 +102,15 @@ def parse(url: str) -> Result:
     ('doi', '10.1101/174094')
     """
     if url.isalnum():
-        return "pubmed", url
+        return Result(Status.success, "pubmed", url)
 
     for protocol in PROTOCOLS:
         if url.startswith(protocol):
-            return _handle(url[len(protocol) :])
+            rv = _handle(url[len(protocol) :])
+            if isinstance(rv, Status):
+                return Result(rv, None, url)
+            else:
+                return Result(Status.success, *rv)
 
     for doi_prefix in RAW_DOI_PREFIXES:
         if url.endswith(".pdf"):
@@ -85,12 +119,15 @@ def parse(url: str) -> Result:
             for version in range(10):
                 if url.endswith(f".v{version}"):
                     url = url[: -len(f".v{version}")]
-            return "doi", url
+            return Result(Status.success, "doi", url)
 
-    return None, url
+    return Result(Status.unknown, None, url)
 
 
-def _handle(url: str) -> Result:
+def _handle(url: str) -> Union[Status, Tuple[str, str]]:
+    if any(url.startswith(x) for x in IRRECONCILABLE):
+        return Status.irreconcilable
+
     for suffix in SUFFIXES:
         if url.endswith(suffix):
             url = url[: -len(suffix)]
@@ -152,7 +189,7 @@ def _handle(url: str) -> Result:
         query = _get_query(url)
         return "doi", query["id"]
 
-    return None, url
+    return Status.unknown
 
 
 def _get_query(url: str) -> Mapping[str, str]:
@@ -165,19 +202,21 @@ def _get_query(url: str) -> Mapping[str, str]:
 
 def sort_key(item: Result) -> Tuple[int, str, str]:
     """Sort results."""
-    if item[0] is None:
-        return 1, "", item[1]
-    return 0, item[0], item[1]
+    if item.status == Status.success:
+        return 0, cast(str, item.prefix), item.identifier
+    else:
+        return 1, "", item.identifier
 
 
-def group(urls: Iterable[str], *, keep_none: bool = True) -> Dict[Optional[str], Set[str]]:
+def group(urls: Iterable[str], *, keep_none: bool = True) -> Dict[Union[str, Status], Set[str]]:
     """Return a dictionary of the parsed URLs."""
-    rv: DefaultDict[Optional[str], Set[str]] = defaultdict(set)
+    rv: DefaultDict[Union[str, Status], Set[str]] = defaultdict(set)
     for url in urls:
-        prefix, identifier = parse(url)
-        if prefix is None and not keep_none:
-            continue
-        rv[prefix].add(identifier)
+        result_type, prefix, identifier = parse(url)
+        if result_type == Status.success:
+            rv[cast(str, prefix)].add(identifier)
+        elif keep_none:
+            rv[result_type].add(identifier)
     return dict(rv)
 
 
