@@ -87,6 +87,21 @@ class TestParse(unittest.TestCase):
                 "doi",
                 "10.3389/fphar.2019.00448",
             ),
+            (
+                "https://arxiv.org/abs/2006.13365",
+                "arxiv",
+                "2006.13365",
+            ),
+            (
+                "https://arxiv.org/pdf/2006.13365",
+                "arxiv",
+                "2006.13365",
+            ),
+            (
+                "https://arxiv.org/pdf/2006.13365.pdf",
+                "arxiv",
+                "2006.13365",
+            ),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):

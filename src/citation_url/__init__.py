@@ -51,6 +51,11 @@ PREFIXES = {
     "joss.theoj.org/papers/": "doi",
     "bmcbioinformatics.biomedcentral.com/track/pdf/": "doi",
     "www.frontiersin.org/articles/": "doi",
+    "arxiv.org/pdf/": "arxiv",
+    "arxiv.org/abs/": "arxiv",
+    "ar5iv.org/abs/": "arxiv",
+    "ar5iv.org/pdf/": "arxiv",
+    "ar5iv.org/html/": "arxiv",
 }
 IRRECONCILABLE = [
     "www.pnas.org/content/pnas/early/",

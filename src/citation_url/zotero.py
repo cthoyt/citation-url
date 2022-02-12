@@ -45,6 +45,7 @@ def zotero_to_wikidata(path: Union[str, Path]):
     )
     _upload_wikidata(id_type="doi", source="crossref", identifiers=groups.get("doi", []))
     _upload_wikidata(id_type="pmid", source="europepmc", identifiers=groups.get("pubmed", []))
+    _upload_wikidata(id_type="arxiv", source="arxiv", identifiers=groups.get("arxiv", []))
 
 
 def _removeprefix(s: str, prefix: str) -> str:
