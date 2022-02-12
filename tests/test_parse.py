@@ -72,6 +72,11 @@ class TestParse(unittest.TestCase):
                 "pubmed",
                 "27357669",
             ),
+            (
+                "https://www.frontiersin.org/articles/10.3389/fphar.2019.00448/pdf",
+                "doi",
+                "10.3389/fphar.2019.00448",
+            ),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):

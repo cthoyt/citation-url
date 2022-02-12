@@ -50,6 +50,7 @@ PREFIXES = {
     "www.annualreviews.org/doi/": "doi",
     "joss.theoj.org/papers/": "doi",
     "bmcbioinformatics.biomedcentral.com/track/pdf/": "doi",
+    "www.frontiersin.org/articles/": "doi",
 }
 IRRECONCILABLE = [
     "www.pnas.org/content/pnas/early/",
