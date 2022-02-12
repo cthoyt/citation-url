@@ -138,11 +138,13 @@ def sort_key(item: Result) -> Tuple[int, str, str]:
     return 0, item[0], item[1]
 
 
-def group(urls: Iterable[str]) -> Mapping[Optional[str], Set[str]]:
+def group(urls: Iterable[str], *, keep_none: bool = True) -> Dict[Optional[str], Set[str]]:
     """Return a dictionary of the parsed URLs."""
     rv: DefaultDict[Optional[str], Set[str]] = defaultdict(set)
     for url in urls:
         prefix, identifier = parse(url)
+        if prefix is None and not keep_none:
+            continue
         rv[prefix].add(identifier)
     return dict(rv)
 
