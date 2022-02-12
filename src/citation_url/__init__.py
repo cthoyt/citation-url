@@ -14,7 +14,7 @@ __all__ = [
 
 RAW_DOI_PREFIXES = {"10.21203/", "10.26434/", "10.20944/", "10.21105/"}
 
-BIORXIV_SUFFIXES = [".pdf", ".full", ".full.pdf", ".article-metrics"]
+SUFFIXES = [".pdf", ".full", ".full.pdf", ".article-metrics", "/pdf"]
 
 PREFIXES = {
     "doi.org/": "doi",
@@ -75,7 +75,7 @@ def parse(url: str) -> Result:
 
     for protocol in PROTOCOLS:
         if url.startswith(protocol):
-            return _handle(url[len(protocol):])
+            return _handle(url[len(protocol) :])
 
     for doi_prefix in RAW_DOI_PREFIXES:
         if url.endswith(".pdf"):
@@ -90,8 +90,9 @@ def parse(url: str) -> Result:
 
 
 def _handle(url: str) -> Result:
-    if url.endswith(".pdf"):
-        url = url[: -len(".pdf")]
+    for suffix in SUFFIXES:
+        if url.endswith(suffix):
+            url = url[: -len(suffix)]
 
     if url.startswith("www.ncbi.nlm.nih.gov/pubmed/"):
         pubmed_id = url[len("www.ncbi.nlm.nih.gov/pubmed/") :]
@@ -114,9 +115,6 @@ def _handle(url: str) -> Result:
     ):
         if url.startswith(prefix):
             url = url[len(prefix) :]
-            for biorxiv_suffix in BIORXIV_SUFFIXES:
-                if url.endswith(biorxiv_suffix):
-                    url = url[: -len(biorxiv_suffix)]
             parts = url.split("/")  # first 3 are dates, forth should be what we want
             biorxiv_id = parts[3]
             if "v" in biorxiv_id:
@@ -125,9 +123,6 @@ def _handle(url: str) -> Result:
 
     if url.startswith("www.biorxiv.org/content/"):
         url = url[len("www.biorxiv.org/content/") :].rstrip()
-        for biorxiv_suffix in BIORXIV_SUFFIXES:
-            if url.endswith(biorxiv_suffix):
-                url = url[: -len(biorxiv_suffix)]
         for v in range(10):
             if url.endswith(f"v{v}"):
                 url = url[: -len(f"v{v}")]
