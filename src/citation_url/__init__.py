@@ -48,7 +48,7 @@ Result = Union[Identifier, Failure]
 def parse(url: str) -> Result:
     """Normalize a citation string that might be a crazy URL from a publisher.
 
-    :param url: A URL
+    :param url: A URL or other string that can be interpreted as a citation
     :returns: Either a pair of two strings (e.g., a prefix and identifier) if
         the URL could be successfully parsed, or a pair of None and the input
         if it could not be parsed.
@@ -57,10 +57,18 @@ def parse(url: str) -> Result:
 
     >>> parse("https://joss.theoj.org/papers/10.21105/joss.01708")
     ('doi', '10.21105/joss.01708')
+
     >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
     ('pubmed', '34739845')
+
     >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/29199020,%2029199020")
     ('pubmed', '29199020')
+
+    >>> parse("http://www.biorxiv.org/content/early/2017/08/09/174094")
+    ('doi', '10.1101/174094')
+
+    >>> parse("http://www.biorxiv.org/content/biorxiv/early/2017/08/09/174094.full.pdf")
+    ('doi', '10.1101/174094')
     """
     if url.isalnum():
         return "pubmed", url
