@@ -83,7 +83,7 @@ def _upload_wikidata(id_type: str, source: str, identifiers: Iterable[str]):
 @click.command()
 @click.argument("path", type=click.Path(path_type=Path))
 def main(path: Path):
-    """Ensure the path on wikidata."""
+    """Ensure the papers in a Zotero XML are added to Wikidata."""
     zotero_to_wikidata(path)
 
 

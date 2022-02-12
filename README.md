@@ -61,6 +61,12 @@ that there are appropriate entries on [Wikidata](https://www.wikidata.org)
 by using the Su Lab's
 [Wikidata Integrator](https://github.com/SuLab/WikidataIntegrator).
 
+Reuse this functionality with:
+
+```shell
+$ python -m citation_url.zotero --help
+```
+
 ## 🚀 Installation
 
 The most recent release can be installed from
