@@ -1,31 +1,18 @@
-# -*- coding: utf-8 -*-
-
 """Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc."""
 
 import enum
 from collections import defaultdict
-from typing import (
-    DefaultDict,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from collections.abc import Iterable, Mapping
+from typing import NamedTuple, cast
 from urllib.parse import urlparse
-
+from curies import
 __all__ = [
-    "parse",
-    "sort_key",
-    "parse_many",
-    "group",
-    "Status",
     "Result",
+    "Status",
+    "group",
+    "parse",
+    "parse_many",
+    "sort_key",
 ]
 
 RAW_DOI_PREFIXES = {"10.21203/", "10.26434/", "10.20944/", "10.21105/"}
@@ -80,7 +67,7 @@ class Status(enum.Enum):
     unknown = "unknown"
     irreconcilable = "irreconcilable"
 
-    def __repr__(self) -> str:  # noqa:D105
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.value}"
 
 
@@ -88,7 +75,7 @@ class Result(NamedTuple):
     """A result tuple."""
 
     status: Status
-    prefix: Optional[str]
+    prefix: str | None
     identifier: str
 
 
@@ -129,26 +116,25 @@ def parse(url: str) -> Result:
                 return Result(Status.success, *rv)
 
     for doi_prefix in RAW_DOI_PREFIXES:
-        if url.endswith(".pdf"):
-            url = url[: -len(".pdf")]
+        url = url.removesuffix(".pdf")
         if url.startswith(doi_prefix):
             for version in range(10):
-                if url.endswith(f".v{version}"):
-                    url = url[: -len(f".v{version}")]
+                url = url.removesuffix(f".v{version}")
             return Result(Status.success, "doi", url)
 
     return Result(Status.unknown, None, url)
 
 
-def _handle(url: str) -> Union[Status, Tuple[str, str]]:
+def _handle(url: str) -> Status | tuple[str, str]:
     if any(url.startswith(x) for x in IRRECONCILABLE):
         return Status.irreconcilable
 
     for suffix in SUFFIXES:
-        if url.endswith(suffix):
-            url = url[: -len(suffix)]
+        url = url.removesuffix(suffix)
 
-    if url.startswith("www.jbc.org/content/") and all(x.isnumeric() for x in url.split("/")[2:]):
+    if url.startswith("www.jbc.org/content/") and all(
+        x.isnumeric() for x in url.split("/")[2:]
+    ):
         return Status.irreconcilable
 
     if url.startswith("www.ncbi.nlm.nih.gov/pubmed/"):
@@ -195,27 +181,23 @@ def _handle(url: str) -> Union[Status, Tuple[str, str]]:
     if url.startswith("www.biorxiv.org/content/"):
         url = url[len("www.biorxiv.org/content/") :]
         for v in range(10):
-            if url.endswith(f"v{v}"):
-                url = url[: -len(f"v{v}")]
+            url = url.removesuffix(f"v{v}")
         return "doi", url
 
     if url.startswith("www.preprints.org/manuscript/"):
         url = url[len("www.preprints.org/manuscript/") :]
         for v in range(10):
-            if url.endswith(f"/v{v}"):
-                url = url[: -len(f"/v{v}")]
+            url = url.removesuffix(f"/v{v}")
         return "doi", f"10.20944/preprints{url}"
 
     if url.startswith("www.frontiersin.org/article/"):
         url = url[len("www.frontiersin.org/article/") :]
-        if url.endswith("/full"):
-            url = url[: -len("/full")]
+        url = url.removesuffix("/full")
         return "doi", url
 
     if url.startswith("www.nature.com/articles/"):
         url = url[len("www.nature.com/articles/") :]
-        if url.endswith(".pdf"):
-            url = url[: -len(".pdf")]
+        url = url.removesuffix(".pdf")
         return "doi", f"10.1038/{url}"
 
     if url.startswith("journals.plos.org/ploscompbiol/article/file"):
@@ -245,7 +227,7 @@ def _get_query(url: str) -> Mapping[str, str]:
     return query
 
 
-def sort_key(item: Result) -> Tuple[int, str, str]:
+def sort_key(item: Result) -> tuple[int, str, str]:
     """Sort results."""
     if item.status == Status.success:
         return 0, cast(str, item.prefix), item.identifier
@@ -253,9 +235,11 @@ def sort_key(item: Result) -> Tuple[int, str, str]:
         return 1, "", item.identifier
 
 
-def group(urls: Iterable[str], *, keep_none: bool = True) -> Dict[Union[str, Status], Set[str]]:
+def group(
+    urls: Iterable[str], *, keep_none: bool = True
+) -> dict[str | Status, set[str]]:
     """Return a dictionary of the parsed URLs."""
-    rv: DefaultDict[Union[str, Status], Set[str]] = defaultdict(set)
+    rv: defaultdict[str | Status, set[str]] = defaultdict(set)
     for url in urls:
         result_type, prefix, identifier = parse(url)
         if result_type == Status.success:
@@ -265,7 +249,7 @@ def group(urls: Iterable[str], *, keep_none: bool = True) -> Dict[Union[str, Sta
     return dict(rv)
 
 
-def parse_many(urls: Iterable[str], pre_sort: bool = False) -> List[Result]:
+def parse_many(urls: Iterable[str], pre_sort: bool = False) -> list[Result]:
     """Parse an iterable of URLs."""
     if pre_sort:
         urls = sorted(urls)

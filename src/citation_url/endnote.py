@@ -1,8 +1,8 @@
 """Interface to EndNote."""
 
 import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, Set, Union
 
 import click
 from defusedxml import ElementTree
@@ -11,8 +11,8 @@ from citation_url import Status, group
 
 
 def process_endnote_xml(
-    path: Union[str, Path], keep_none: bool = False
-) -> Dict[Union[str, Status], Set[str]]:
+    path: str | Path, keep_none: bool = False
+) -> dict[str | Status, set[str]]:
     """Extract all URLs from an EndNote XML file."""
     tree = ElementTree.parse(path)
     groups = group(
@@ -32,7 +32,7 @@ def process_endnote_xml(
     return groups
 
 
-def endnote_to_wikidata(path: Union[str, Path]):
+def endnote_to_wikidata(path: str | Path):
     """Ensure the contents of the EndNote XML file are added to Wikidata."""
     groups = process_endnote_xml(path=path, keep_none=False)
     _upload_wikidata(
@@ -40,10 +40,18 @@ def endnote_to_wikidata(path: Union[str, Path]):
         source="europepmc",
         identifiers=[_removeprefix(x, "PMC") for x in groups.get("pmc", [])],
     )
-    _upload_wikidata(id_type="doi", source="crossref", identifiers=groups.get("doi", []))
-    _upload_wikidata(id_type="pmid", source="europepmc", identifiers=groups.get("pubmed", []))
-    _upload_wikidata(id_type="arxiv", source="arxiv", identifiers=groups.get("arxiv", []))
-    _upload_wikidata(id_type="biorxiv", source="biorxiv", identifiers=groups.get("biorxiv", []))
+    _upload_wikidata(
+        id_type="doi", source="crossref", identifiers=groups.get("doi", [])
+    )
+    _upload_wikidata(
+        id_type="pmid", source="europepmc", identifiers=groups.get("pubmed", [])
+    )
+    _upload_wikidata(
+        id_type="arxiv", source="arxiv", identifiers=groups.get("arxiv", [])
+    )
+    _upload_wikidata(
+        id_type="biorxiv", source="biorxiv", identifiers=groups.get("biorxiv", [])
+    )
 
 
 def _removeprefix(s: str, prefix: str) -> str:
@@ -65,14 +73,16 @@ def _upload_wikidata(id_type: str, source: str, identifiers: Iterable[str]):
 
     for identifier in tqdm(identifiers, desc=f"{id_type}/{source}"):
         try:
-            publication_helper = PublicationHelper(identifier, id_type=id_type, source=source)
+            publication_helper = PublicationHelper(
+                identifier, id_type=id_type, source=source
+            )
             qid, warnings, success = publication_helper.get_or_create(wikidata_login)
             success = "success" if success is True else success
             tqdm.write(f"{id_type}:{identifier}\twikidata:{qid}\tmessage: {success}")
             for warning in warnings or []:
                 tqdm.write(f"    warning: {warning}")
             time.sleep(3)
-        except Exception as e:
+        except Exception as e:  # noqa:BLE001
             tqdm.write(f"{id_type}:{identifier}")
             tqdm.write(f"    failure: {e}")
 

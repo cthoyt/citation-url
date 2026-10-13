@@ -1,7 +1,7 @@
 """Tests for parsing."""
 
 import unittest
-from typing import Iterable
+from collections.abc import Iterable
 
 import citation_url
 from citation_url import IRRECONCILABLE, PREFIXES, PROTOCOLS, Result, Status
@@ -28,7 +28,9 @@ class TestParse(unittest.TestCase):
         """Help test the prefixes don't include protocols."""
         for prefix in prefixes:
             with self.subTest(prefix=prefix):
-                self.assertFalse(any(prefix.startswith(protocol) for protocol in PROTOCOLS))
+                self.assertFalse(
+                    any(prefix.startswith(protocol) for protocol in PROTOCOLS)
+                )
 
     def test_result_repr(self):
         """Test thee repr of a result."""
@@ -80,12 +82,22 @@ class TestParse(unittest.TestCase):
                 "doi",
                 "10.1074/jbc.RA118.006805",
             ),
-            ("https://europepmc.org/articles/pmc4944528?pdf=render", "pmc", "PMC4944528"),
-            ("https://europepmc.org/articles/PMC4944528?pdf=render", "pmc", "PMC4944528"),
+            (
+                "https://europepmc.org/articles/pmc4944528?pdf=render",
+                "pmc",
+                "PMC4944528",
+            ),
+            (
+                "https://europepmc.org/articles/PMC4944528?pdf=render",
+                "pmc",
+                "PMC4944528",
+            ),
             ("https://europepmc.org/article/PMC/4944528", "pmc", "PMC4944528"),
             (
-                "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&amp;id="
-                "27357669&amp;retmode=ref&amp;cmd=prlinks",
+                (
+                    "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&amp;id="
+                    "27357669&amp;retmode=ref&amp;cmd=prlinks"
+                ),
                 "pubmed",
                 "27357669",
             ),
@@ -131,4 +143,6 @@ class TestParse(unittest.TestCase):
         ]
         for url in data:
             with self.subTest(url=url):
-                self.assertEqual(Result(Status.irreconcilable, None, url), citation_url.parse(url))
+                self.assertEqual(
+                    Result(Status.irreconcilable, None, url), citation_url.parse(url)
+                )

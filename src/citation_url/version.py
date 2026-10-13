@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Version information for :mod:`citation_url`.
 
 Run with ``python -m citation_url.version``
@@ -19,4 +17,4 @@ def get_version(with_git_hash: bool = False):
 
 
 if __name__ == "__main__":
-    print(get_version())  # noqa:T001
+    print(get_version())
