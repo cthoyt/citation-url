@@ -14,6 +14,8 @@ __all__ = [
     "parse",
 ]
 
+PROTOCOLS = {"https://", "http://"}
+
 RAW_DOI_PREFIXES = {"10.21203/", "10.26434/", "10.20944/", "10.21105/"}
 
 SUFFIXES = [".pdf", ".full", ".full.pdf", ".article-metrics", "/pdf"]
@@ -46,7 +48,46 @@ PREFIXES = {
     "ar5iv.org/html/": "arxiv",
 }
 
-DOI_REWRITES = {"http://pubs.rsc.org/en/Content/ArticleLanding/2026/RE/": "10.1039/"}
+#: from https://dtds.rsc.org/#desc-journalref
+RSC_JOURNAL_TWO_LETTER_CODES = {
+    "AC",
+    "AN",
+    "CC",
+    "CE",
+    "CP",
+    "CS",
+    "DT",
+    "EM",
+    "FD",
+    "FT",
+    "GC",
+    "GT",
+    "IC",
+    "OC",
+    "PC",
+    "JA",
+    "JC",
+    "JM",
+    "MC",
+    "NJ",
+    "NP",
+    "P1",
+    "P2",
+    "PO",
+    "RC",
+    "RE",
+    "PY",
+    "SU",
+}
+
+DOI_REWRITES = {}
+
+# Add RSC journal abbreviations from https://dtds.rsc.org/#desc-journalref
+for _year in range(1960, 2100):
+    for _journal in RSC_JOURNAL_TWO_LETTER_CODES:
+        for _protocol in PROTOCOLS:
+            _key = f"{_protocol}pubs.rsc.org/en/Content/ArticleLanding/{_year}/{_journal}/"
+            DOI_REWRITES[_key] = "10.1039/"
 
 IRRECONCILABLE = [
     "www.pnas.org/content/pnas/early/",
@@ -58,8 +99,6 @@ IRRECONCILABLE = [
     "msb.embopress.org/content/",
     "msb.embopress.org/content/msb/",
 ]
-
-PROTOCOLS = {"https://", "http://"}
 
 
 class FailureReason(enum.Enum):
