@@ -1,31 +1,17 @@
-# -*- coding: utf-8 -*-
-
 """Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc."""
 
 import enum
 from collections import defaultdict
-from typing import (
-    DefaultDict,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from collections.abc import Iterable, Mapping
+from typing import Literal, overload
 from urllib.parse import urlparse
 
+from curies import Reference
+
 __all__ = [
-    "parse",
-    "sort_key",
-    "parse_many",
+    "FailureReason",
     "group",
-    "Status",
-    "Result",
+    "parse",
 ]
 
 RAW_DOI_PREFIXES = {"10.21203/", "10.26434/", "10.20944/", "10.21105/"}
@@ -59,6 +45,9 @@ PREFIXES = {
     "ar5iv.org/pdf/": "arxiv",
     "ar5iv.org/html/": "arxiv",
 }
+
+DOI_REWRITES = {"http://pubs.rsc.org/en/Content/ArticleLanding/2026/RE/": "10.1039/"}
+
 IRRECONCILABLE = [
     "www.pnas.org/content/pnas/early/",
     "www.pnas.org/content/pnas/",
@@ -73,26 +62,17 @@ IRRECONCILABLE = [
 PROTOCOLS = {"https://", "http://"}
 
 
-class Status(enum.Enum):
+class FailureReason(enum.Enum):
     """A result type enumeration."""
 
-    success = "success"
     unknown = "unknown"
     irreconcilable = "irreconcilable"
 
-    def __repr__(self) -> str:  # noqa:D105
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}.{self.value}"
 
 
-class Result(NamedTuple):
-    """A result tuple."""
-
-    status: Status
-    prefix: Optional[str]
-    identifier: str
-
-
-def parse(url: str) -> Result:
+def parse(url: str) -> Reference | FailureReason:
     """Normalize a citation string that might be a crazy URL from a publisher.
 
     :param url: A URL or other string that can be interpreted as a citation
@@ -103,68 +83,66 @@ def parse(url: str) -> Result:
     Ideally, this function should be able to parse a huge amount of garbage.
 
     >>> parse("https://joss.theoj.org/papers/10.21105/joss.01708")
-    ('doi', '10.21105/joss.01708')
+    Reference(prefix='doi', identifier='10.21105/joss.01708')
 
     >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
-    ('pubmed', '34739845')
+    Reference(prefix='pubmed', identifier='34739845')
 
     >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/29199020,%2029199020")
-    ('pubmed', '29199020')
+    Reference(prefix='pubmed', identifier='29199020')
 
     >>> parse("http://www.biorxiv.org/content/early/2017/08/09/174094")
-    ('doi', '10.1101/174094')
+    Reference(prefix='doi', identifier='10.1101/174094')
 
     >>> parse("http://www.biorxiv.org/content/biorxiv/early/2017/08/09/174094.full.pdf")
-    ('doi', '10.1101/174094')
+    Reference(prefix='doi', identifier='10.1101/174094')
     """
     if url.isnumeric():
-        return Result(Status.success, "pubmed", url)
+        return Reference(prefix="pubmed", identifier=url)
+
+    for url_prefix, doi_prefix in DOI_REWRITES.items():
+        if url.startswith(url_prefix):
+            doi = doi_prefix + url.removeprefix(url_prefix)
+            return Reference(prefix="doi", identifier=doi)
 
     for protocol in PROTOCOLS:
         if url.startswith(protocol):
-            rv = _handle(url[len(protocol) :])
-            if isinstance(rv, Status):
-                return Result(rv, None, url)
-            else:
-                return Result(Status.success, *rv)
+            return _handle(url.removeprefix(protocol))
 
     for doi_prefix in RAW_DOI_PREFIXES:
-        if url.endswith(".pdf"):
-            url = url[: -len(".pdf")]
         if url.startswith(doi_prefix):
+            doi = url.removesuffix(".pdf")
             for version in range(10):
-                if url.endswith(f".v{version}"):
-                    url = url[: -len(f".v{version}")]
-            return Result(Status.success, "doi", url)
+                doi = doi.removesuffix(f".v{version}")
+            return Reference(prefix="doi", identifier=doi)
 
-    return Result(Status.unknown, None, url)
+    return FailureReason.unknown
 
 
-def _handle(url: str) -> Union[Status, Tuple[str, str]]:
+def _handle(url: str) -> Reference | FailureReason:  # noqa:C901
     if any(url.startswith(x) for x in IRRECONCILABLE):
-        return Status.irreconcilable
+        return FailureReason.irreconcilable
 
     for suffix in SUFFIXES:
-        if url.endswith(suffix):
-            url = url[: -len(suffix)]
+        url = url.removesuffix(suffix)
 
     if url.startswith("www.jbc.org/content/") and all(x.isnumeric() for x in url.split("/")[2:]):
-        return Status.irreconcilable
+        return FailureReason.irreconcilable
 
     if url.startswith("www.ncbi.nlm.nih.gov/pubmed/"):
         pubmed_id = url[len("www.ncbi.nlm.nih.gov/pubmed/") :]
         if "," in pubmed_id:
             pubmed_id = pubmed_id.split(",")[0]
-        return "pubmed", pubmed_id
+        return Reference(prefix="pubmed", identifier=pubmed_id)
 
     for prefix, ns in PREFIXES.items():
         if url.startswith(prefix):
-            return ns, url[len(prefix) :]
+            return Reference(prefix=ns, identifier=url.removeprefix(prefix))
 
     if url.startswith("www.ncbi.nlm.nih.gov/pmc/articles/"):
         url = url[len("www.ncbi.nlm.nih.gov/pmc/articles/") :]
         url = url.split("/")[0]
-        return "pmc", url
+        return Reference(prefix="pmc", identifier=url)
 
     for prefix in (
         "www.biorxiv.org/content/early/",
@@ -176,65 +154,65 @@ def _handle(url: str) -> Union[Status, Tuple[str, str]]:
             biorxiv_id = parts[3]
             if "v" in biorxiv_id:
                 biorxiv_id = biorxiv_id.split("v")[0]
-            return "doi", f"10.1101/{biorxiv_id}"
+            return Reference(prefix="doi", identifier=f"10.1101/{biorxiv_id}")
 
     if url.startswith("europepmc.org/article/PMC/"):
-        pmc_id = url[len("europepmc.org/article/PMC/") :]
-        return "pmc", f"PMC{pmc_id}"
+        pmc_id = url.removeprefix("europepmc.org/article/PMC/")
+        return Reference(prefix="pmc", identifier=f"PMC{pmc_id}")
 
     if url.lower().startswith("europepmc.org/articles/pmc"):
-        url = url[len("europepmc.org/articles/pmc") :]
+        url = url.lower().removeprefix("europepmc.org/articles/pmc")
         pmc_id = url.split("?")[0]
-        return "pmc", f"PMC{pmc_id}"
+        return Reference(prefix="pmc", identifier=f"PMC{pmc_id}")
 
     if url.startswith("www.jbc.org/content/early/"):
-        url = url[len("www.jbc.org/content/early/") :]
+        url = url.removeprefix("www.jbc.org/content/early/")
         parts = url.split("/")  # first 3 are dates, forth should be what we want
-        return "doi", f"10.1074/{parts[3]}"
+        return Reference(prefix="doi", identifier=f"10.1074/{parts[3]}")
 
     if url.startswith("www.biorxiv.org/content/"):
-        url = url[len("www.biorxiv.org/content/") :]
+        url = url.removeprefix("www.biorxiv.org/content/")
         for v in range(10):
-            if url.endswith(f"v{v}"):
-                url = url[: -len(f"v{v}")]
-        return "doi", url
+            url = url.removesuffix(f"v{v}")
+        return Reference(prefix="doi", identifier=url)
 
     if url.startswith("www.preprints.org/manuscript/"):
-        url = url[len("www.preprints.org/manuscript/") :]
+        url = url.removeprefix("www.preprints.org/manuscript/")
         for v in range(10):
-            if url.endswith(f"/v{v}"):
-                url = url[: -len(f"/v{v}")]
-        return "doi", f"10.20944/preprints{url}"
+            url = url.removesuffix(f"/v{v}")
+        return Reference(prefix="doi", identifier=f"10.20944/preprints{url}")
 
     if url.startswith("www.frontiersin.org/article/"):
-        url = url[len("www.frontiersin.org/article/") :]
-        if url.endswith("/full"):
-            url = url[: -len("/full")]
-        return "doi", url
+        doi = url.removeprefix("www.frontiersin.org/article/").removesuffix("/full")
+        return Reference(prefix="doi", identifier=doi)
 
     if url.startswith("www.nature.com/articles/"):
-        url = url[len("www.nature.com/articles/") :]
-        if url.endswith(".pdf"):
-            url = url[: -len(".pdf")]
-        return "doi", f"10.1038/{url}"
+        url = url.removeprefix("www.nature.com/articles/")
+        url = url.removesuffix(".pdf")
+        return Reference(prefix="doi", identifier=f"10.1038/{url}")
 
     if url.startswith("journals.plos.org/ploscompbiol/article/file"):
         query = _get_query(url)
-        return "doi", query["id"]
+        return Reference(prefix="doi", identifier=query["id"])
 
     if url.startswith("elifesciences.org/download/"):
-        url = url[len("elifesciences.org/download/") :]
+        url = url.removeprefix("elifesciences.org/download/")
         part = url.split("/")[1]
         part = part.split("?")[0]
         elife_id = part.split("-")[1]
-        return "doi", f"10.7554/eLife.{elife_id}"
+        return Reference(prefix="doi", identifier=f"10.7554/eLife.{elife_id}")
+
+    if url.startswith("pubs.acs.org/accacs/article/doi/"):
+        rest = url.removeprefix("pubs.acs.org/accacs/article/doi/")
+        a, b, _rest = rest.split("/", maxsplit=2)
+        return Reference(prefix="doi", identifier=a + "/" + b)
 
     if url.startswith("eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi"):
         query = _get_query(url)
         if query.get("dbfrom") == "pubmed":
-            return "pubmed", query["id"]
+            return Reference(prefix="pubmed", identifier=query["id"])
 
-    return Status.unknown
+    return FailureReason.unknown
 
 
 def _get_query(url: str) -> Mapping[str, str]:
@@ -245,28 +223,28 @@ def _get_query(url: str) -> Mapping[str, str]:
     return query
 
 
-def sort_key(item: Result) -> Tuple[int, str, str]:
-    """Sort results."""
-    if item.status == Status.success:
-        return 0, cast(str, item.prefix), item.identifier
-    else:
-        return 1, "", item.identifier
+# docstr-coverage:excused `overload`
+@overload
+def group(urls: Iterable[str], *, keep_none: Literal[False] = ...) -> dict[str, set[str]]: ...
 
 
-def group(urls: Iterable[str], *, keep_none: bool = True) -> Dict[Union[str, Status], Set[str]]:
+# docstr-coverage:excused `overload`
+@overload
+def group(
+    urls: Iterable[str], *, keep_none: Literal[True] = ...
+) -> dict[str | FailureReason, set[str]]: ...
+
+
+def group(
+    urls: Iterable[str], *, keep_none: bool = True
+) -> dict[str | FailureReason, set[str]] | dict[str, set[str]]:
     """Return a dictionary of the parsed URLs."""
-    rv: DefaultDict[Union[str, Status], Set[str]] = defaultdict(set)
+    rv: defaultdict[str | FailureReason, set[str]] = defaultdict(set)
     for url in urls:
-        result_type, prefix, identifier = parse(url)
-        if result_type == Status.success:
-            rv[cast(str, prefix)].add(identifier)
-        elif keep_none:
-            rv[result_type].add(identifier)
+        match parse(url):
+            case Reference() as reference:
+                rv[str(reference.prefix)].add(reference.identifier)
+            case FailureReason() as reason:
+                if keep_none:
+                    rv[reason].add(url)
     return dict(rv)
-
-
-def parse_many(urls: Iterable[str], pre_sort: bool = False) -> List[Result]:
-    """Parse an iterable of URLs."""
-    if pre_sort:
-        urls = sorted(urls)
-    return [parse(url) for url in urls]

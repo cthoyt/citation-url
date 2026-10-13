@@ -1,0 +1,33 @@
+{
+  "template": "https://github.com/cthoyt/cookiecutter-snekpack",
+  "commit": "d502968175ad44b35b2c7be1e9db30bd27ece3e0",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "package_name": "citation_url",
+      "package_name_stylized": "Citation URL",
+      "short_description": "Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc",
+      "author_name": "Charles Tapley Hoyt",
+      "author_github": "cthoyt",
+      "author_email": "cthoyt@gmail.com",
+      "github_organization_name": "cthoyt",
+      "github_repository_name": "citation-url",
+      "command_line_interface": false,
+      "gitlab": false,
+      "runner": "tox",
+      "citation_file": false,
+      "__not_charlie": "",
+      "__runner": "tox -e",
+      "__runner_uv": "--with tox-uv tox -e",
+      "__runner_pip": "tox tox-uv",
+      "__runner_install_uv": "uv tool install tox --with tox-uv",
+      "__runner_install_pip": "python3 -m pip install tox tox-uv",
+      "__runner_tests": "py",
+      "__gh_slug": "cthoyt/citation-url",
+      "__package_name_dashed": "citation-url",
+      "_template": "https://github.com/cthoyt/cookiecutter-snekpack",
+      "_commit": "d502968175ad44b35b2c7be1e9db30bd27ece3e0"
+    }
+  },
+  "directory": null
+}
