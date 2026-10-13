@@ -190,7 +190,7 @@ def _handle(url: str) -> Reason | tuple[str, str]:
         return "pmc", f"PMC{pmc_id}"
 
     if url.lower().startswith("europepmc.org/articles/pmc"):
-        url = url.removeprefix("europepmc.org/articles/pmc")
+        url = url.lower().removeprefix("europepmc.org/articles/pmc")
         pmc_id = url.split("?")[0]
         return "pmc", f"PMC{pmc_id}"
 
@@ -232,9 +232,8 @@ def _handle(url: str) -> Reason | tuple[str, str]:
         elife_id = part.split("-")[1]
         return "doi", f"10.7554/eLife.{elife_id}"
 
-    if url.startswith("pubs.acs.org/accacs/article/doi"):
-        rest = url.removeprefix("https://pubs.acs.org/accacs/article/doi/")
-        print(rest)
+    if url.startswith("pubs.acs.org/accacs/article/doi/"):
+        rest = url.removeprefix("pubs.acs.org/accacs/article/doi/")
         a, b, _rest = rest.split("/", maxsplit=2)
         return "doi", a + "/" + b
 
