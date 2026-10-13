@@ -46,6 +46,7 @@ PREFIXES = {
     "ar5iv.org/abs/": "arxiv",
     "ar5iv.org/pdf/": "arxiv",
     "ar5iv.org/html/": "arxiv",
+    "www.sciencedirect.com/science/article/pii/": "pii",
 }
 
 #: from https://dtds.rsc.org/#desc-journalref
