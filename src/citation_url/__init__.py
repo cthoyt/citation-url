@@ -3,7 +3,7 @@
 import enum
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from typing import NamedTuple, TypeAlias, cast
+from typing import Literal, NamedTuple, TypeAlias, overload
 from urllib.parse import urlparse
 
 from curies import Reference
@@ -146,16 +146,14 @@ def parse(url: str) -> Result:
     return Failure(url, Reason.unknown)
 
 
-def _handle(url: str) -> Reason | tuple[str, str]:
+def _handle(url: str) -> Reason | tuple[str, str]:  # noqa:C901
     if any(url.startswith(x) for x in IRRECONCILABLE):
         return Reason.irreconcilable
 
     for suffix in SUFFIXES:
         url = url.removesuffix(suffix)
 
-    if url.startswith("www.jbc.org/content/") and all(
-        x.isnumeric() for x in url.split("/")[2:]
-    ):
+    if url.startswith("www.jbc.org/content/") and all(x.isnumeric() for x in url.split("/")[2:]):
         return Reason.irreconcilable
 
     if url.startswith("www.ncbi.nlm.nih.gov/pubmed/"):
@@ -255,23 +253,35 @@ def _get_query(url: str) -> Mapping[str, str]:
 
 def sort_key(item: Result) -> tuple[int, str, str]:
     """Sort results."""
-    if item.status == Reason.success:
-        return 0, cast(str, item.prefix), item.identifier
-    else:
-        return 1, "", item.identifier
+    match item:
+        case Success(_, reference):
+            return 0, reference.prefix, reference.identifier
+        case Failure(url, _):
+            return 1, "", url
+
+
+@overload
+def group(urls: Iterable[str], *, keep_none: Literal[False] = ...) -> dict[str, set[str]]: ...
+
+
+@overload
+def group(
+    urls: Iterable[str], *, keep_none: Literal[True] = ...
+) -> dict[str | Reason, set[str]]: ...
 
 
 def group(
     urls: Iterable[str], *, keep_none: bool = True
-) -> dict[str | Reason, set[str]]:
+) -> dict[str | Reason, set[str]] | dict[str, set[str]]:
     """Return a dictionary of the parsed URLs."""
     rv: defaultdict[str | Reason, set[str]] = defaultdict(set)
     for url in urls:
-        result_type, prefix, identifier = parse(url)
-        if result_type == Reason.success:
-            rv[cast(str, prefix)].add(identifier)
-        elif keep_none:
-            rv[result_type].add(identifier)
+        match parse(url):
+            case Success(url, reference):
+                rv[str(reference.prefix)].add(reference.identifier)
+            case Failure(url, reason):
+                if keep_none:
+                    rv[reason].add(url)
     return dict(rv)
 
 

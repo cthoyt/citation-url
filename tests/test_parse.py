@@ -134,16 +134,15 @@ class TestParse(unittest.TestCase):
         """Help test the prefixes don't include protocols."""
         for prefix in prefixes:
             with self.subTest(prefix=prefix):
-                self.assertFalse(
-                    any(prefix.startswith(protocol) for protocol in PROTOCOLS)
-                )
+                self.assertFalse(any(prefix.startswith(protocol) for protocol in PROTOCOLS))
 
     def test_parse(self) -> None:
         """Test parsing."""
         for url, prefix, identifier in POSITIVE_CASES:
             with self.subTest(url=url):
                 result = citation_url.parse(url)
-                self.assertIsInstance(result, Success)
+                if not isinstance(result, Success):
+                    self.fail()
                 self.assertEqual(
                     Reference(prefix=prefix, identifier=identifier).curie,
                     result.reference.curie,
@@ -165,6 +164,4 @@ class TestParse(unittest.TestCase):
         ]
         for url in data:
             with self.subTest(url=url):
-                self.assertEqual(
-                    Failure(url, Reason.irreconcilable), citation_url.parse(url)
-                )
+                self.assertEqual(Failure(url, Reason.irreconcilable), citation_url.parse(url))

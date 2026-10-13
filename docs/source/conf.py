@@ -1,16 +1,14 @@
-#
-# Configuration file for the Sphinx documentation builder.
-#
-# This file does only contain a selection of the most common options. For a
-# full list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+"""Configuration file for the Sphinx documentation builder.
 
-# -- Path setup --------------------------------------------------------------
+This file does only contain a selection of the most common options. For a full list see
+the documentation: http://www.sphinx-doc.org/en/master/config
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
+-- Path setup --------------------------------------------------------------
+
+If extensions (or modules to document with autodoc) are in another directory, add these
+directories to ``sys.path`` here. If the directory is relative to the documentation
+root, use ``os.path.abspath`` to make it absolute, like shown here.
+"""
 
 import os
 import re
@@ -26,7 +24,7 @@ copyright = f"{date.today().year}, Charles Tapley Hoyt"
 author = "Charles Tapley Hoyt"
 
 # The full version, including alpha/beta/rc tags.
-release = "0.1.2-dev"
+release = "0.0.1-dev"
 
 # The short X.Y version.
 parsed_version = re.match(
@@ -37,6 +35,19 @@ version = parsed_version.expand(r"\g<major>.\g<minor>.\g<patch>")
 
 if parsed_version.group("release"):
     tags.add("prerelease")  # noqa:F821
+
+
+# See https://about.readthedocs.com/blog/2024/07/addons-by-default/
+# Define the canonical URL if you are using a custom domain on Read the Docs
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
+# See https://about.readthedocs.com/blog/2024/07/addons-by-default/
+# Tell Jinja2 templates the build is running on Read the Docs
+if os.environ.get("READTHEDOCS", "") == "True":
+    if "html_context" not in globals():
+        html_context = {}
+    html_context["READTHEDOCS"] = True
+
 
 # -- General configuration ---------------------------------------------------
 
@@ -62,8 +73,11 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
-    "sphinx_autodoc_typehints",
+    "sphinx_automodapi.automodapi",
+    "sphinx_automodapi.smart_resolver",
+    # 'texext',
 ]
+
 
 # generate autosummary pages
 autosummary_generate = True
@@ -75,7 +89,9 @@ templates_path = ["_templates"]
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+source_suffix = {
+    ".rst": "restructuredtext",
+}
 
 # The master toctree document.
 master_doc = "index"
@@ -85,7 +101,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -132,7 +148,7 @@ if os.path.exists("logo.png"):
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "citation-urldoc"
+htmlhelp_basename = "citation_url_doc"
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -161,7 +177,7 @@ htmlhelp_basename = "citation-urldoc"
 #     (
 #         master_doc,
 #         'citation_url.tex',
-#         'citation-url Documentation',
+#         'Citation URL Documentation',
 #         author,
 #         'manual',
 #     ),
@@ -175,7 +191,7 @@ man_pages = [
     (
         master_doc,
         "citation_url",
-        "citation-url Documentation",
+        "Citation URL Documentation",
         [author],
         1,
     ),
@@ -190,10 +206,10 @@ texinfo_documents = [
     (
         master_doc,
         "citation_url",
-        "citation-url Documentation",
+        "Citation URL Documentation",
         author,
         "Charles Tapley Hoyt",
-        "Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc.",
+        "Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc",
         "Miscellaneous",
     ),
 ]
@@ -220,8 +236,13 @@ texinfo_documents = [
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
+# Note: don't add trailing slashes, since sphinx adds "/objects.inv" to the end
 intersphinx_mapping = {
-    "https://docs.python.org/3/": None,
+    "python": ("https://docs.python.org/3", None),
+    "pandas": ("https://pandas.pydata.org/docs", None),
+    "sklearn": ("https://scikit-learn.org/stable", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
 }
 
 autoclass_content = "both"
@@ -229,3 +250,9 @@ autoclass_content = "both"
 # Don't sort alphabetically, explained at:
 # https://stackoverflow.com/questions/37209921/python-how-not-to-sort-sphinx-output-in-alphabetical-order
 autodoc_member_order = "bysource"
+
+todo_include_todos = True
+todo_emit_warnings = True
+
+# Output SVG inheritance diagrams
+graphviz_output_format = "svg"
