@@ -38,10 +38,10 @@ etc.
 
 ## 💪 Getting Started
 
-This module has a single `parse()` function that takes in a URL and gives back
-a parse status (success, unknown, or irreconcilable), a prefix, and
-an identifier. If the status is unknown or irreconcilable, the prefix will
-be left as `None` and the identifier will match the input:
+This module has a single `parse()` function that takes in a URL and gives back a
+parse status (success, unknown, or irreconcilable), a prefix, and an identifier.
+If the status is unknown or irreconcilable, the prefix will be left as `None`
+and the identifier will match the input:
 
 ```python
 >>> from citation_url import parse, FailureReason
@@ -62,15 +62,14 @@ FailureReason.unknown
 FailureReason.irreconcilable
 ```
 
-
 ## 🕵️ Why?
 
 I wanted to be able to curate a list of papers in
 [Zotero](https://www.zotero.org), [Mendeley](https://www.mendeley.com/), or any
 other modern citation manager, make an XML export in the EndNote format, extract
 and normalize the messy contents in the `electronic-resource-num`, `text-urls`,
-and `pdf-urls` fields, then ensure that there are corresponding entries
-on [Wikidata](https://www.wikidata.org) using the Su Lab's
+and `pdf-urls` fields, then ensure that there are corresponding entries on
+[Wikidata](https://www.wikidata.org) using the Su Lab's
 [Wikidata Integrator](https://github.com/SuLab/WikidataIntegrator).
 
 Reuse this functionality with:
