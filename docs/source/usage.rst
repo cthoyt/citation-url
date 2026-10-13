@@ -2,4 +2,4 @@
  Usage
 #######
 
-.. automodapi:: citation_url.api
+.. automodapi:: citation_url
