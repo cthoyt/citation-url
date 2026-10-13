@@ -223,10 +223,12 @@ def _get_query(url: str) -> Mapping[str, str]:
     return query
 
 
+# docstr-coverage:excused `overload`
 @overload
 def group(urls: Iterable[str], *, keep_none: Literal[False] = ...) -> dict[str, set[str]]: ...
 
 
+# docstr-coverage:excused `overload`
 @overload
 def group(
     urls: Iterable[str], *, keep_none: Literal[True] = ...
