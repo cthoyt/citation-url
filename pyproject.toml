@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "citation-url"
-version = "0.2.0-dev"
+version = "0.2.0"
 description = "Parse URLs for DOIs, PubMed identifiers, PMC identifiers, arXiv identifiers, etc"
 readme = "README.md"
 authors = [
@@ -217,7 +217,7 @@ known-first-party = [
 docstring-code-format = true
 
 [tool.bumpversion]
-current_version = "0.2.0-dev"
+current_version = "0.2.0"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(?:-(?P<release>[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+(?P<build>[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?"
 serialize = [
     "{major}.{minor}.{patch}-{release}+{build}",
