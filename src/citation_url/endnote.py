@@ -7,12 +7,12 @@ from pathlib import Path
 import click
 from defusedxml import ElementTree
 
-from citation_url import Status, group
+from citation_url import Reason, group
 
 
 def process_endnote_xml(
     path: str | Path, keep_none: bool = False
-) -> dict[str | Status, set[str]]:
+) -> dict[str | Reason, set[str]]:
     """Extract all URLs from an EndNote XML file."""
     tree = ElementTree.parse(path)
     groups = group(

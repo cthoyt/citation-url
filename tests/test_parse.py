@@ -3,28 +3,37 @@
 import unittest
 from collections.abc import Iterable
 
+from curies import Reference
+
 import citation_url
-from citation_url import IRRECONCILABLE, PREFIXES, PROTOCOLS, Result, Status
+from citation_url import (
+    IRRECONCILABLE,
+    PREFIXES,
+    PROTOCOLS,
+    Failure,
+    Reason,
+    Success,
+)
 
 
 class TestParse(unittest.TestCase):
     """Tests for parsing."""
 
-    def test_protocols(self):
+    def test_protocols(self) -> None:
         """Test all protocols are formed properly."""
         for protocol in PROTOCOLS:
             with self.subTest(protocol=protocol):
                 self.assertTrue(protocol.endswith("://"))
 
-    def test_prefixes(self):
+    def test_prefixes(self) -> None:
         """Test no prefixes include protocols."""
         self.help_prefixes(PREFIXES)
 
-    def test_irrec(self):
+    def test_irrec(self) -> None:
         """Test no irreconcilable prefixes include protocols."""
         self.help_prefixes(IRRECONCILABLE)
 
-    def help_prefixes(self, prefixes: Iterable[str]):
+    def help_prefixes(self, prefixes: Iterable[str]) -> None:
         """Help test the prefixes don't include protocols."""
         for prefix in prefixes:
             with self.subTest(prefix=prefix):
@@ -32,14 +41,7 @@ class TestParse(unittest.TestCase):
                     any(prefix.startswith(protocol) for protocol in PROTOCOLS)
                 )
 
-    def test_result_repr(self):
-        """Test thee repr of a result."""
-        self.assertEqual(
-            "Result(status=Status.success, prefix='pubmed', identifier='34739845')",
-            repr(Result(status=Status.success, prefix="pubmed", identifier="34739845")),
-        )
-
-    def test_parse(self):
+    def test_parse(self) -> None:
         """Test parsing."""
         data = [
             (
@@ -121,14 +123,30 @@ class TestParse(unittest.TestCase):
                 "arxiv",
                 "2006.13365",
             ),
+            (
+                "https://link.springer.com/10.1007/s10118-026-3839-7",
+                "doi",
+                "10.1007/s10118-026-3839-7",
+            ),
+            (
+                "https://pubs.acs.org/accacs/article/doi/10.1021/acscatal.6c06714/5448573/CNT-Mediated-Integration-of-Pd-and-In2O3",
+                "doi",
+                "10.1021/acscatal.6c06714",
+            ),
+            (
+                "http://pubs.rsc.org/en/Content/ArticleLanding/2026/RE/D5RE00536A",
+                "doi",
+                "10.1039/D5RE00536A",
+            ),
         ]
         for url, prefix, identifier in data:
             with self.subTest(url=url):
                 self.assertEqual(
-                    Result(Status.success, prefix, identifier), citation_url.parse(url)
+                    Success(url, Reference(prefix=prefix, identifier=identifier)),
+                    citation_url.parse(url),
                 )
 
-    def test_unable_to_parse(self):
+    def test_unable_to_parse(self) -> None:
         """Test URLs that don't have enough information to get a standard identifier."""
         data = [
             "https://www.pnas.org/content/pnas/early/2020/06/24/2000648117.full.pdf",
@@ -144,5 +162,5 @@ class TestParse(unittest.TestCase):
         for url in data:
             with self.subTest(url=url):
                 self.assertEqual(
-                    Result(Status.irreconcilable, None, url), citation_url.parse(url)
+                    Failure(url, Reason.irreconcilable), citation_url.parse(url)
                 )

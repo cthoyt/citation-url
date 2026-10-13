@@ -1,9 +1,3 @@
-<!--
-<p align="center">
-  <img src="https://github.com/cthoyt/citation-url/raw/main/docs/source/logo.png" height="150">
-</p>
--->
-
 <h1 align="center">
   citation-url
 </h1>
@@ -42,22 +36,22 @@ an identifier. If the status is unknown or irreconcilable, the prefix will
 be left as `None` and the identifier will match the input:
 
 ```python
->>> from citation_url import parse, Status
+>>> from citation_url import parse, Reason
 
 >>> parse("https://joss.theoj.org/papers/10.21105/joss.01708")
-(Status.success, 'doi', '10.21105/joss.01708')
+(Reason.success, 'doi', '10.21105/joss.01708')
 
 >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
-(Status.success, 'pubmed', '34739845')
+(Reason.success, 'pubmed', '34739845')
 
 >>> parse("https://example.com/true-garbage")
-(Status.unknown, None, 'https://example.com/true-garbage')
+(Reason.unknown, None, 'https://example.com/true-garbage')
 
 >>> parse("https://example.com/true-garbage")
-(Status.unknown, None, 'https://example.com/true-garbage')
+(Reason.unknown, None, 'https://example.com/true-garbage')
 
 >>> parse("http://msb.embopress.org/content/13/11/954.full.pdf")
-(Status.irreconcilable, None, 'http://msb.embopress.org/content/13/11/954.full.pdf')
+(Reason.irreconcilable, None, 'http://msb.embopress.org/content/13/11/954.full.pdf')
 ```
 
 ## 🕵️ Why?
@@ -72,7 +66,7 @@ on [Wikidata](https://www.wikidata.org) using the Su Lab's
 
 Reuse this functionality with:
 
-```shell
+```console
 $ python -m citation_url.endnote --help
 ```
 
@@ -81,13 +75,13 @@ $ python -m citation_url.endnote --help
 The most recent release can be installed from
 [PyPI](https://pypi.org/project/citation_url/) with:
 
-```bash
-$ pip install citation_url
+```console
+$ pip install citation-url
 ```
 
 The most recent code and data can be installed directly from GitHub with:
 
-```bash
+```console
 $ pip install git+https://github.com/cthoyt/citation-url.git
 ```
 
@@ -144,7 +138,7 @@ The final section of the README is for if you want to get involved by making a c
 
 To install in development mode, use the following:
 
-```bash
+```console
 $ git clone git+https://github.com/cthoyt/citation-url.git
 $ cd citation-url
 $ pip install -e .
@@ -155,7 +149,7 @@ $ pip install -e .
 After cloning the repository and installing `tox` with `pip install tox`, the unit tests in the `tests/` folder can be
 run reproducibly with:
 
-```shell
+```console
 $ tox
 ```
 
@@ -163,7 +157,7 @@ Additionally, these tests are automatically re-run with each commit in a [GitHub
 
 ### 📖 Building the Documentation
 
-```shell
+```console
 $ tox -e docs
 ``` 
 
@@ -173,7 +167,7 @@ After installing the package in development mode and installing
 `tox` with `pip install tox`, the commands for making a new release are contained within the `finish` environment
 in `tox.ini`. Run the following from the shell:
 
-```shell
+```console
 $ tox -e finish
 ```
 
