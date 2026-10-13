@@ -44,7 +44,7 @@ an identifier. If the status is unknown or irreconcilable, the prefix will
 be left as `None` and the identifier will match the input:
 
 ```python
->>> from citation_url import parse, FailureMode
+>>> from citation_url import parse, FailureReason
 
 >>> parse("https://joss.theoj.org/papers/10.21105/joss.01708")
 Reference(prefix='doi', identifier='10.21105/joss.01708')
@@ -53,13 +53,13 @@ Reference(prefix='doi', identifier='10.21105/joss.01708')
 Reference(prefix='pubmed', identifier='34739845')
 
 >>> parse("https://example.com/true-garbage")
-FailureMode.unknown
+FailureReason.unknown
 
 >>> parse("https://example.com/true-garbage")
-FailureMode.unknown
+FailureReason.unknown
 
 >>> parse("http://msb.embopress.org/content/13/11/954.full.pdf")
-FailureMode.irreconcilable
+FailureReason.irreconcilable
 ```
 
 

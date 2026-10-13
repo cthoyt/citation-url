@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from curies import Reference
 
 __all__ = [
-    "FailureMode",
+    "FailureReason",
     "group",
     "parse",
 ]
@@ -62,7 +62,7 @@ IRRECONCILABLE = [
 PROTOCOLS = {"https://", "http://"}
 
 
-class FailureMode(enum.Enum):
+class FailureReason(enum.Enum):
     """A result type enumeration."""
 
     unknown = "unknown"
@@ -72,7 +72,7 @@ class FailureMode(enum.Enum):
         return f"{self.__class__.__name__}.{self.value}"
 
 
-def parse(url: str) -> Reference | FailureMode:
+def parse(url: str) -> Reference | FailureReason:
     """Normalize a citation string that might be a crazy URL from a publisher.
 
     :param url: A URL or other string that can be interpreted as a citation
@@ -116,18 +116,18 @@ def parse(url: str) -> Reference | FailureMode:
                 doi = doi.removesuffix(f".v{version}")
             return Reference(prefix="doi", identifier=doi)
 
-    return FailureMode.unknown
+    return FailureReason.unknown
 
 
-def _handle(url: str) -> Reference | FailureMode:  # noqa:C901
+def _handle(url: str) -> Reference | FailureReason:  # noqa:C901
     if any(url.startswith(x) for x in IRRECONCILABLE):
-        return FailureMode.irreconcilable
+        return FailureReason.irreconcilable
 
     for suffix in SUFFIXES:
         url = url.removesuffix(suffix)
 
     if url.startswith("www.jbc.org/content/") and all(x.isnumeric() for x in url.split("/")[2:]):
-        return FailureMode.irreconcilable
+        return FailureReason.irreconcilable
 
     if url.startswith("www.ncbi.nlm.nih.gov/pubmed/"):
         pubmed_id = url[len("www.ncbi.nlm.nih.gov/pubmed/") :]
@@ -212,7 +212,7 @@ def _handle(url: str) -> Reference | FailureMode:  # noqa:C901
         if query.get("dbfrom") == "pubmed":
             return Reference(prefix="pubmed", identifier=query["id"])
 
-    return FailureMode.unknown
+    return FailureReason.unknown
 
 
 def _get_query(url: str) -> Mapping[str, str]:
@@ -230,19 +230,19 @@ def group(urls: Iterable[str], *, keep_none: Literal[False] = ...) -> dict[str, 
 @overload
 def group(
     urls: Iterable[str], *, keep_none: Literal[True] = ...
-) -> dict[str | FailureMode, set[str]]: ...
+) -> dict[str | FailureReason, set[str]]: ...
 
 
 def group(
     urls: Iterable[str], *, keep_none: bool = True
-) -> dict[str | FailureMode, set[str]] | dict[str, set[str]]:
+) -> dict[str | FailureReason, set[str]] | dict[str, set[str]]:
     """Return a dictionary of the parsed URLs."""
-    rv: defaultdict[str | FailureMode, set[str]] = defaultdict(set)
+    rv: defaultdict[str | FailureReason, set[str]] = defaultdict(set)
     for url in urls:
         match parse(url):
             case Reference() as reference:
                 rv[str(reference.prefix)].add(reference.identifier)
-            case FailureMode() as reason:
+            case FailureReason() as reason:
                 if keep_none:
                     rv[reason].add(url)
     return dict(rv)
