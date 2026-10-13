@@ -44,22 +44,22 @@ an identifier. If the status is unknown or irreconcilable, the prefix will
 be left as `None` and the identifier will match the input:
 
 ```python
->>> from citation_url import parse, Reason
+>>> from citation_url import parse, FailureMode
 
 >>> parse("https://joss.theoj.org/papers/10.21105/joss.01708")
-(Reason.success, 'doi', '10.21105/joss.01708')
+Reference(prefix='doi', identifier='10.21105/joss.01708')
 
 >>> parse("http://www.ncbi.nlm.nih.gov/pubmed/34739845")
-(Reason.success, 'pubmed', '34739845')
+Reference(prefix='pubmed', identifier='34739845')
 
 >>> parse("https://example.com/true-garbage")
-(Reason.unknown, None, 'https://example.com/true-garbage')
+FailureMode.unknown
 
 >>> parse("https://example.com/true-garbage")
-(Reason.unknown, None, 'https://example.com/true-garbage')
+FailureMode.unknown
 
 >>> parse("http://msb.embopress.org/content/13/11/954.full.pdf")
-(Reason.irreconcilable, None, 'http://msb.embopress.org/content/13/11/954.full.pdf')
+FailureMode.irreconcilable
 ```
 
 

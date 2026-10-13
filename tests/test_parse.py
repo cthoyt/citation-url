@@ -6,14 +6,7 @@ from collections.abc import Iterable
 from curies import Reference
 
 import citation_url
-from citation_url import (
-    IRRECONCILABLE,
-    PREFIXES,
-    PROTOCOLS,
-    Failure,
-    Reason,
-    Success,
-)
+from citation_url import IRRECONCILABLE, PREFIXES, PROTOCOLS, FailureMode
 
 POSITIVE_CASES = [
     (
@@ -141,11 +134,9 @@ class TestParse(unittest.TestCase):
         for url, prefix, identifier in POSITIVE_CASES:
             with self.subTest(url=url):
                 result = citation_url.parse(url)
-                if not isinstance(result, Success):
-                    self.fail()
                 self.assertEqual(
-                    Reference(prefix=prefix, identifier=identifier).curie,
-                    result.reference.curie,
+                    Reference(prefix=prefix, identifier=identifier),
+                    result,
                     msg=f"failed parse on {url}",
                 )
 
@@ -164,4 +155,4 @@ class TestParse(unittest.TestCase):
         ]
         for url in data:
             with self.subTest(url=url):
-                self.assertEqual(Failure(url, Reason.irreconcilable), citation_url.parse(url))
+                self.assertEqual(FailureMode.irreconcilable, citation_url.parse(url))
